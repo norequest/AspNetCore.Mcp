@@ -10,6 +10,7 @@ namespace McpEndpoints.Generator.Tests;
 
 public sealed record GeneratorResult(
     ImmutableArray<Diagnostic> Diagnostics,
+    ImmutableArray<Diagnostic> CompilationDiagnostics,
     string AllGeneratedSource);
 
 public static class GeneratorTestHarness
@@ -28,6 +29,7 @@ public static class GeneratorTestHarness
             typeof(Microsoft.AspNetCore.Mvc.RouteAttribute),
             typeof(Microsoft.AspNetCore.Mvc.ApiControllerAttribute),
             typeof(Microsoft.AspNetCore.Mvc.FromBodyAttribute),
+            typeof(McpEndpoints.IMcpEndpointInvoker),
         };
 
         var extraRefs = extraTypes
@@ -56,6 +58,8 @@ public static class GeneratorTestHarness
                 .Where(t => t.FilePath != "Input.cs")
                 .Select(t => t.ToString()));
 
-        return new GeneratorResult(diagnostics, generated);
+        var compilationDiagnostics = outputCompilation.GetDiagnostics();
+
+        return new GeneratorResult(diagnostics, compilationDiagnostics, generated);
     }
 }

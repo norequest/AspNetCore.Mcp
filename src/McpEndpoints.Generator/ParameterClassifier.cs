@@ -5,9 +5,17 @@ namespace McpEndpoints.Generator;
 
 public static class ParameterClassifier
 {
+    // Fully-qualified format WITHOUT special-type keywords (so int -> global::System.Int32),
+    // but keeping nullable reference type annotations (so string? stays string?).
+    private static readonly SymbolDisplayFormat TypeFormat =
+        SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(
+            (SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions
+                & ~SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+            | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
     public static ParameterModel Classify(IParameterSymbol p, string route)
     {
-        var typeName = p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var typeName = p.Type.ToDisplayString(TypeFormat);
         var source = DetermineSource(p, route);
         return new ParameterModel(p.Name, typeName, source);
     }
