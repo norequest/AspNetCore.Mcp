@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/McpEndpoints.Abstractions/McpEndpoints.Abstractions.csproj" />
+    <Project Path="src/McpEndpoints.Generator/McpEndpoints.Generator.csproj" />
+    <Project Path="src/McpEndpoints/McpEndpoints.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/McpEndpoints.Generator.Tests/McpEndpoints.Generator.Tests.csproj" />
+  </Folder>
+</Solution>
