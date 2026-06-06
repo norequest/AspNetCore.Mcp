@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Xml.Linq;
 using McpEndpoints.Generator.Internal;
 using Microsoft.CodeAnalysis;
 
@@ -6,25 +7,113 @@ namespace McpEndpoints.Generator;
 
 public static class ModelBuilder
 {
+    private static readonly (string Attr, string Verb)[] VerbAttributes =
+    {
+        ("Microsoft.AspNetCore.Mvc.HttpGetAttribute", "GET"),
+        ("Microsoft.AspNetCore.Mvc.HttpPostAttribute", "POST"),
+        ("Microsoft.AspNetCore.Mvc.HttpPutAttribute", "PUT"),
+        ("Microsoft.AspNetCore.Mvc.HttpDeleteAttribute", "DELETE"),
+        ("Microsoft.AspNetCore.Mvc.HttpPatchAttribute", "PATCH"),
+    };
+
     public static EndpointModel? Build(GeneratorAttributeSyntaxContext ctx)
     {
         if (ctx.TargetSymbol is not IMethodSymbol method) return null;
 
         var ns = method.ContainingType.ContainingNamespace.IsGlobalNamespace
-            ? "Generated"
+            ? string.Empty
             : method.ContainingType.ContainingNamespace.ToDisplayString();
 
         var className = $"{method.ContainingType.Name}_{method.Name}_Tool";
-        var toolName = method.Name; // refined to camelCase + explicit name in a later task
+
+        var mcpAttr = ctx.Attributes.FirstOrDefault();
+        var explicitName = mcpAttr?.NamedArguments
+            .FirstOrDefault(kv => kv.Key == "Name").Value.Value as string;
+        var toolName = string.IsNullOrWhiteSpace(explicitName)
+            ? ToCamelCase(method.Name)
+            : explicitName!;
+
+        var (httpMethod, methodRoute) = GetVerbAndRoute(method);
+        var classRoute = GetClassRoute(method.ContainingType);
+        var route = CombineRoutes(classRoute, methodRoute);
+
+        var description = GetXmlSummary(method) ?? GetDescriptionAttribute(method);
+
+        var parameters = method.Parameters
+            .Select(p => ParameterClassifier.Classify(p, route))
+            .ToArray();
 
         return new EndpointModel(
             Namespace: ns,
             GeneratedClassName: className,
             ToolName: toolName,
-            Description: null,
-            HttpMethod: "GET",
-            RouteTemplate: string.Empty,
-            Parameters: new EquatableArray<ParameterModel>(Enumerable.Empty<ParameterModel>()),
+            Description: description,
+            HttpMethod: httpMethod,
+            RouteTemplate: route,
+            Parameters: new EquatableArray<ParameterModel>(parameters),
             Location: LocationInfo.From(method.Locations.FirstOrDefault() ?? Location.None));
     }
+
+    private static (string Verb, string Route) GetVerbAndRoute(IMethodSymbol method)
+    {
+        foreach (var attr in method.GetAttributes())
+        {
+            var name = attr.AttributeClass?.ToDisplayString();
+            var match = VerbAttributes.FirstOrDefault(v => v.Attr == name);
+            if (match.Attr is not null)
+            {
+                var route = attr.ConstructorArguments.Length > 0
+                    ? attr.ConstructorArguments[0].Value as string ?? string.Empty
+                    : string.Empty;
+                return (match.Verb, route);
+            }
+        }
+        return ("GET", string.Empty);
+    }
+
+    private static string GetClassRoute(INamedTypeSymbol type)
+    {
+        var routeAttr = type.GetAttributes().FirstOrDefault(a =>
+            a.AttributeClass?.ToDisplayString() == "Microsoft.AspNetCore.Mvc.RouteAttribute");
+        if (routeAttr is { ConstructorArguments.Length: > 0 })
+            return routeAttr.ConstructorArguments[0].Value as string ?? string.Empty;
+        return string.Empty;
+    }
+
+    private static string CombineRoutes(string prefix, string suffix)
+    {
+        prefix = prefix.Trim('/');
+        suffix = suffix.Trim('/');
+        if (prefix.Length == 0) return suffix;
+        if (suffix.Length == 0) return prefix;
+        return $"{prefix}/{suffix}";
+    }
+
+    private static string? GetXmlSummary(IMethodSymbol method)
+    {
+        var xml = method.GetDocumentationCommentXml();
+        if (string.IsNullOrWhiteSpace(xml)) return null;
+        try
+        {
+            var summary = XDocument.Parse(xml).Descendants("summary").FirstOrDefault();
+            var text = summary?.Value.Trim();
+            return string.IsNullOrWhiteSpace(text) ? null : text;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? GetDescriptionAttribute(IMethodSymbol method)
+    {
+        var attr = method.GetAttributes().FirstOrDefault(a =>
+            a.AttributeClass?.ToDisplayString() == "System.ComponentModel.DescriptionAttribute");
+        if (attr is { ConstructorArguments.Length: > 0 })
+            return attr.ConstructorArguments[0].Value as string;
+        return null;
+    }
+
+    private static string ToCamelCase(string s) =>
+        string.IsNullOrEmpty(s) ? s : char.ToLowerInvariant(s[0]) + s.Substring(1);
 }
