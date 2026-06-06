@@ -20,6 +20,12 @@ public sealed class McpToolGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(models, static (spc, model) =>
         {
+            if (!model.HasDescription && model.Location is { } loc)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.MissingDescription, loc.ToLocation(), model.ToolName));
+            }
+
             spc.AddSource($"{model.GeneratedClassName}.g.cs", Emitter.Emit(model));
         });
     }
