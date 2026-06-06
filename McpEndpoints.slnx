@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/SampleApi/SampleApi.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/McpEndpoints.Abstractions/McpEndpoints.Abstractions.csproj" />
     <Project Path="src/McpEndpoints.Generator/McpEndpoints.Generator.csproj" />
@@ -6,6 +9,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/McpEndpoints.Generator.Tests/McpEndpoints.Generator.Tests.csproj" />
+    <Project Path="tests/McpEndpoints.IntegrationTests/McpEndpoints.IntegrationTests.csproj" />
     <Project Path="tests/McpEndpoints.Runtime.Tests/McpEndpoints.Runtime.Tests.csproj" />
   </Folder>
 </Solution>
