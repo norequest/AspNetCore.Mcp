@@ -44,8 +44,10 @@ jobs:
       - name: Push to NuGet
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        # NOTE: intentionally NO --skip-duplicate. That flag turns a 409 Conflict
+        # ("version already exists" / failed-validation / stuck-validating) into a
+        # green build, which once hid a real publish failure. Let conflicts fail loud.
         run: >
           dotnet nuget push "artifacts/*.nupkg"
           --api-key "$NUGET_API_KEY"
           --source https://api.nuget.org/v3/index.json
-          --skip-duplicate
