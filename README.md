@@ -71,7 +71,10 @@ official SDK gives you an MCP endpoint; this gives you a *curated, lean* one.
 
 ## Install
 
-Not on NuGet yet. Reference the projects directly from your API project:
+> Not on NuGet yet. Once published, install will be a single package:
+> `dotnet add package AspNetCore.Mcp`. For now, consume via project references.
+
+Reference the projects directly from your API project:
 
 ```xml
 <ItemGroup>
@@ -87,10 +90,12 @@ Not on NuGet yet. Reference the projects directly from your API project:
 </PropertyGroup>
 ```
 
-You also need the official MCP server packages (already pulled in by the sample):
+The official MCP SDK (`ModelContextProtocol.AspNetCore`, which provides `AddMcpServer`/`MapMcp` and
+the tool attributes the generated code uses) comes in **transitively** via `AspNetCore.Mcp` — you do
+not need to add it yourself. To pin a specific version, add it explicitly:
 
 ```bash
-dotnet add package ModelContextProtocol.AspNetCore
+dotnet add package ModelContextProtocol.AspNetCore   # optional; only to control the version
 ```
 
 ---

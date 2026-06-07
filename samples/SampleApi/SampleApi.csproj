@@ -11,7 +11,8 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
+    <!-- ModelContextProtocol.AspNetCore is NOT referenced here on purpose: it comes
+         transitively from the AspNetCore.Mcp package below. -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
     <ProjectReference Include="..\..\src\AspNetCore.Mcp\AspNetCore.Mcp.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore.Mcp.Abstractions\AspNetCore.Mcp.Abstractions.csproj" />
