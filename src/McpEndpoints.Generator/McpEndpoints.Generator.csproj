@@ -13,4 +13,9 @@
          fails to load in real builds. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Analyzer release tracking (resolves RS2008) for MCPGEN0xx diagnostics. -->
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
 </Project>
