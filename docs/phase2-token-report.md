@@ -1,6 +1,6 @@
 # Phase 2: MCP token-cost report
 
-`McpEndpoints.TokenReport` is an offline, deterministic analyzer that tells you what your
+`AspNetCore.Mcp.TokenReport` is an offline, deterministic analyzer that tells you what your
 MCP tool surface costs in tokens. An MCP server advertises its tools via a `tools/list`
 result, and the model pays tokens for every tool's `name`, `description`, and `inputSchema`
 (JSON Schema) on each turn that the tool list is in context. This is your "token bill":
@@ -57,7 +57,7 @@ Total: 143 tokens (estimated, offline heuristic).
 
 ## Library API
 
-Namespace `McpEndpoints.TokenReport`:
+Namespace `AspNetCore.Mcp.TokenReport`:
 
 - `ITokenizer` / `HeuristicTokenizer` -- token counting.
 - `ToolDescriptor` -- a parsed tool (name, description, compact input schema JSON).
@@ -71,6 +71,6 @@ Namespace `McpEndpoints.TokenReport`:
 ## Future integration
 
 Today this tool consumes a `tools/list` JSON file. As a future integration, the
-McpEndpoints generator could emit a tool manifest at build time that feeds this analyzer
+AspNetCore.Mcp generator could emit a tool manifest at build time that feeds this analyzer
 automatically, so the token bill (and the CI budget gate) runs as part of every build with
 no manual export step.

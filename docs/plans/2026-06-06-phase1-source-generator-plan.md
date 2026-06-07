@@ -29,35 +29,35 @@
 - Token-cost report (Phase 2), output trimming (Phase 3), safety gating (Phase 4).
 - `[FromForm]`, file uploads, complex multi-source binding.
 
-**Naming:** working package family `McpEndpoints.*` and root namespace `McpEndpoints`. Provisional; rename before publish.
+**Naming:** working package family `AspNetCore.Mcp.*` and root namespace `AspNetCore.Mcp`. Provisional; rename before publish.
 
 ---
 
 ## File Structure
 
 ```
-McpEndpoints.sln
+AspNetCore.Mcp.sln
 src/
-  McpEndpoints.Abstractions/        (netstandard2.0) public attribute consumed by users + read by generator
-    McpEndpoints.Abstractions.csproj
+  AspNetCore.Mcp.Abstractions/        (netstandard2.0) public attribute consumed by users + read by generator
+    AspNetCore.Mcp.Abstractions.csproj
     McpToolAttribute.cs
-  McpEndpoints.Generator/           (netstandard2.0) the incremental source generator
-    McpEndpoints.Generator.csproj
+  AspNetCore.Mcp.Generator/           (netstandard2.0) the incremental source generator
+    AspNetCore.Mcp.Generator.csproj
     McpToolGenerator.cs             entry point: IIncrementalGenerator
     EndpointModel.cs                value-equatable model + ParameterModel + ParameterSource
     Emitter.cs                      model -> C# source string
     Diagnostics.cs                  DiagnosticDescriptors
     Internal/EquatableArray.cs      structural-equality array wrapper
     Internal/LocationInfo.cs        serializable location for incremental-safe diagnostics
-  McpEndpoints/                     (net8.0;net9.0) runtime invoker + DI
-    McpEndpoints.csproj
+  AspNetCore.Mcp/                     (net8.0;net9.0) runtime invoker + DI
+    AspNetCore.Mcp.csproj
     IMcpEndpointInvoker.cs
     HttpClientMcpEndpointInvoker.cs
     McpEndpointsOptions.cs
     ServiceCollectionExtensions.cs
 tests/
-  McpEndpoints.Generator.Tests/     (net9.0) generator unit/snapshot tests
-    McpEndpoints.Generator.Tests.csproj
+  AspNetCore.Mcp.Generator.Tests/     (net9.0) generator unit/snapshot tests
+    AspNetCore.Mcp.Generator.Tests.csproj
     GeneratorTestHarness.cs
     EquatableArrayTests.cs
     LocationInfoTests.cs
@@ -66,11 +66,11 @@ tests/
     ParameterMappingTests.cs
     EmitterTests.cs
     DiagnosticsTests.cs
-  McpEndpoints.Runtime.Tests/       (net9.0) invoker unit tests
-    McpEndpoints.Runtime.Tests.csproj
+  AspNetCore.Mcp.Runtime.Tests/       (net9.0) invoker unit tests
+    AspNetCore.Mcp.Runtime.Tests.csproj
     HttpClientMcpEndpointInvokerTests.cs
-  McpEndpoints.IntegrationTests/    (net9.0) end-to-end with a real ASP.NET app
-    McpEndpoints.IntegrationTests.csproj
+  AspNetCore.Mcp.IntegrationTests/    (net9.0) end-to-end with a real ASP.NET app
+    AspNetCore.Mcp.IntegrationTests.csproj
     SampleApi/                      minimal test app + a marked controller
     EndToEndToolInvocationTests.cs
 ```
@@ -80,29 +80,29 @@ tests/
 ### Task 1: Solution and project scaffolding
 
 **Files:**
-- Create: `McpEndpoints.sln`
-- Create: `src/McpEndpoints.Abstractions/McpEndpoints.Abstractions.csproj`
-- Create: `src/McpEndpoints.Generator/McpEndpoints.Generator.csproj`
-- Create: `src/McpEndpoints/McpEndpoints.csproj`
-- Create: `tests/McpEndpoints.Generator.Tests/McpEndpoints.Generator.Tests.csproj`
+- Create: `AspNetCore.Mcp.sln`
+- Create: `src/AspNetCore.Mcp.Abstractions/AspNetCore.Mcp.Abstractions.csproj`
+- Create: `src/AspNetCore.Mcp.Generator/AspNetCore.Mcp.Generator.csproj`
+- Create: `src/AspNetCore.Mcp/AspNetCore.Mcp.csproj`
+- Create: `tests/AspNetCore.Mcp.Generator.Tests/AspNetCore.Mcp.Generator.Tests.csproj`
 
 - [ ] **Step 1: Create the solution and projects**
 
 Run from repo root:
 
 ```bash
-dotnet new sln -n McpEndpoints
-dotnet new classlib -n McpEndpoints.Abstractions -o src/McpEndpoints.Abstractions -f netstandard2.0
-dotnet new classlib -n McpEndpoints.Generator -o src/McpEndpoints.Generator -f netstandard2.0
-dotnet new classlib -n McpEndpoints -o src/McpEndpoints
-dotnet new xunit -n McpEndpoints.Generator.Tests -o tests/McpEndpoints.Generator.Tests
-rm src/McpEndpoints.Abstractions/Class1.cs src/McpEndpoints.Generator/Class1.cs src/McpEndpoints/Class1.cs
-dotnet sln add src/McpEndpoints.Abstractions src/McpEndpoints.Generator src/McpEndpoints tests/McpEndpoints.Generator.Tests
+dotnet new sln -n AspNetCore.Mcp
+dotnet new classlib -n AspNetCore.Mcp.Abstractions -o src/AspNetCore.Mcp.Abstractions -f netstandard2.0
+dotnet new classlib -n AspNetCore.Mcp.Generator -o src/AspNetCore.Mcp.Generator -f netstandard2.0
+dotnet new classlib -n AspNetCore.Mcp -o src/AspNetCore.Mcp
+dotnet new xunit -n AspNetCore.Mcp.Generator.Tests -o tests/AspNetCore.Mcp.Generator.Tests
+rm src/AspNetCore.Mcp.Abstractions/Class1.cs src/AspNetCore.Mcp.Generator/Class1.cs src/AspNetCore.Mcp/Class1.cs
+dotnet sln add src/AspNetCore.Mcp.Abstractions src/AspNetCore.Mcp.Generator src/AspNetCore.Mcp tests/AspNetCore.Mcp.Generator.Tests
 ```
 
 - [ ] **Step 2: Configure the generator project**
 
-Replace `src/McpEndpoints.Generator/McpEndpoints.Generator.csproj` with:
+Replace `src/AspNetCore.Mcp.Generator/AspNetCore.Mcp.Generator.csproj` with:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -122,7 +122,7 @@ Replace `src/McpEndpoints.Generator/McpEndpoints.Generator.csproj` with:
 
 - [ ] **Step 3: Configure the runtime project**
 
-Replace `src/McpEndpoints/McpEndpoints.csproj` with:
+Replace `src/AspNetCore.Mcp/AspNetCore.Mcp.csproj` with:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -139,26 +139,26 @@ Replace `src/McpEndpoints/McpEndpoints.csproj` with:
 
 - [ ] **Step 4: Configure the test project references**
 
-Edit `tests/McpEndpoints.Generator.Tests/McpEndpoints.Generator.Tests.csproj` to add (inside an `<ItemGroup>`):
+Edit `tests/AspNetCore.Mcp.Generator.Tests/AspNetCore.Mcp.Generator.Tests.csproj` to add (inside an `<ItemGroup>`):
 
 ```xml
 <PackageReference Include="Basic.Reference.Assemblies.Net90" Version="1.7.0" />
 <PackageReference Include="ModelContextProtocol" Version="1.4.0" />
-<ProjectReference Include="..\..\src\McpEndpoints.Generator\McpEndpoints.Generator.csproj"
+<ProjectReference Include="..\..\src\AspNetCore.Mcp.Generator\AspNetCore.Mcp.Generator.csproj"
                   OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-<ProjectReference Include="..\..\src\McpEndpoints.Abstractions\McpEndpoints.Abstractions.csproj" />
+<ProjectReference Include="..\..\src\AspNetCore.Mcp.Abstractions\AspNetCore.Mcp.Abstractions.csproj" />
 ```
 
 - [ ] **Step 5: Verify the solution builds**
 
-Run: `dotnet build McpEndpoints.sln`
+Run: `dotnet build AspNetCore.Mcp.sln`
 Expected: build succeeds, 0 errors.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add -A
-git commit -m "chore: scaffold McpEndpoints solution and projects"
+git commit -m "chore: scaffold AspNetCore.Mcp solution and projects"
 ```
 
 ---
@@ -166,17 +166,17 @@ git commit -m "chore: scaffold McpEndpoints solution and projects"
 ### Task 2: The `[McpTool]` attribute
 
 **Files:**
-- Create: `src/McpEndpoints.Abstractions/McpToolAttribute.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/GeneratorBasicTests.cs` (added in Task 6; attribute is exercised there)
+- Create: `src/AspNetCore.Mcp.Abstractions/McpToolAttribute.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/GeneratorBasicTests.cs` (added in Task 6; attribute is exercised there)
 
 - [ ] **Step 1: Write the attribute**
 
-`src/McpEndpoints.Abstractions/McpToolAttribute.cs`:
+`src/AspNetCore.Mcp.Abstractions/McpToolAttribute.cs`:
 
 ```csharp
 using System;
 
-namespace McpEndpoints;
+namespace AspNetCore.Mcp;
 
 /// <summary>
 /// Marks an ASP.NET Core controller action to be exposed as an MCP tool.
@@ -192,13 +192,13 @@ public sealed class McpToolAttribute : Attribute
 
 - [ ] **Step 2: Verify it builds**
 
-Run: `dotnet build src/McpEndpoints.Abstractions`
+Run: `dotnet build src/AspNetCore.Mcp.Abstractions`
 Expected: build succeeds.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/McpEndpoints.Abstractions/McpToolAttribute.cs
+git add src/AspNetCore.Mcp.Abstractions/McpToolAttribute.cs
 git commit -m "feat: add McpTool attribute"
 ```
 
@@ -209,18 +209,18 @@ git commit -m "feat: add McpTool attribute"
 The generator's model must have value equality so Roslyn can cache incremental results. `ImmutableArray<T>` uses reference equality, so we wrap it.
 
 **Files:**
-- Create: `src/McpEndpoints.Generator/Internal/EquatableArray.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/EquatableArrayTests.cs`
+- Create: `src/AspNetCore.Mcp.Generator/Internal/EquatableArray.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/EquatableArrayTests.cs`
 
 - [ ] **Step 1: Write the failing test**
 
-`tests/McpEndpoints.Generator.Tests/EquatableArrayTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/EquatableArrayTests.cs`:
 
 ```csharp
-using McpEndpoints.Generator.Internal;
+using AspNetCore.Mcp.Generator.Internal;
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class EquatableArrayTests
 {
@@ -246,18 +246,18 @@ public class EquatableArrayTests
 Note: the test references the generator project as a normal `ProjectReference` for this internal type. Add to the test csproj:
 
 ```xml
-<ProjectReference Include="..\..\src\McpEndpoints.Generator\McpEndpoints.Generator.csproj" />
+<ProjectReference Include="..\..\src\AspNetCore.Mcp.Generator\AspNetCore.Mcp.Generator.csproj" />
 ```
 (in addition to the analyzer reference already present; both references can coexist).
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter EquatableArrayTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter EquatableArrayTests`
 Expected: FAIL, `EquatableArray` does not exist.
 
 - [ ] **Step 3: Implement `EquatableArray<T>`**
 
-`src/McpEndpoints.Generator/Internal/EquatableArray.cs`:
+`src/AspNetCore.Mcp.Generator/Internal/EquatableArray.cs`:
 
 ```csharp
 using System;
@@ -266,7 +266,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace McpEndpoints.Generator.Internal;
+namespace AspNetCore.Mcp.Generator.Internal;
 
 public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
     where T : IEquatable<T>
@@ -305,7 +305,7 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter EquatableArrayTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter EquatableArrayTests`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -322,21 +322,21 @@ git commit -m "feat: add EquatableArray for incremental generator caching"
 `Microsoft.CodeAnalysis.Location` is not value-equatable and breaks incremental caching. Store a serializable location and rebuild a `Location` when reporting.
 
 **Files:**
-- Create: `src/McpEndpoints.Generator/Internal/LocationInfo.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/LocationInfoTests.cs`
+- Create: `src/AspNetCore.Mcp.Generator/Internal/LocationInfo.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/LocationInfoTests.cs`
 
 - [ ] **Step 1: Write the failing test**
 
-`tests/McpEndpoints.Generator.Tests/LocationInfoTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/LocationInfoTests.cs`:
 
 ```csharp
-using McpEndpoints.Generator.Internal;
+using AspNetCore.Mcp.Generator.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class LocationInfoTests
 {
@@ -360,19 +360,19 @@ Add `using System.Linq;` at the top.
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter LocationInfoTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter LocationInfoTests`
 Expected: FAIL, `LocationInfo` does not exist.
 
 - [ ] **Step 3: Implement `LocationInfo`**
 
-`src/McpEndpoints.Generator/Internal/LocationInfo.cs`:
+`src/AspNetCore.Mcp.Generator/Internal/LocationInfo.cs`:
 
 ```csharp
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace McpEndpoints.Generator.Internal;
+namespace AspNetCore.Mcp.Generator.Internal;
 
 public readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
@@ -391,7 +391,7 @@ public readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, L
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter LocationInfoTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter LocationInfoTests`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -408,21 +408,21 @@ git commit -m "feat: add LocationInfo for incremental-safe diagnostics"
 A reusable helper that runs the generator against source text and returns generated sources + diagnostics, compiling against real reference assemblies, the abstractions, and the MCP SDK.
 
 **Files:**
-- Create: `tests/McpEndpoints.Generator.Tests/GeneratorTestHarness.cs`
+- Create: `tests/AspNetCore.Mcp.Generator.Tests/GeneratorTestHarness.cs`
 
 - [ ] **Step 1: Write the harness**
 
-`tests/McpEndpoints.Generator.Tests/GeneratorTestHarness.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/GeneratorTestHarness.cs`:
 
 ```csharp
 using System.Collections.Immutable;
 using System.Linq;
 using Basic.Reference.Assemblies;
-using McpEndpoints.Generator;
+using AspNetCore.Mcp.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public sealed record GeneratorResult(
     ImmutableArray<Diagnostic> Diagnostics,
@@ -437,7 +437,7 @@ public static class GeneratorTestHarness
         var references = Net90.References.All
             .Concat(new[]
             {
-                MetadataReference.CreateFromFile(typeof(McpEndpoints.McpToolAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(AspNetCore.Mcp.McpToolAttribute).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(ModelContextProtocol.Server.McpServerToolAttribute).Assembly.Location),
             })
             .ToArray();
@@ -466,7 +466,7 @@ Note: `Net90.References.All` may include MVC/AspNetCore depending on the package
 
 - [ ] **Step 2: Verify the test project builds**
 
-Run: `dotnet build tests/McpEndpoints.Generator.Tests`
+Run: `dotnet build tests/AspNetCore.Mcp.Generator.Tests`
 Expected: build fails ONLY because `McpToolGenerator` does not yet exist. That is expected; proceed to Task 6 which creates it. (If you prefer a green checkpoint, temporarily stub `McpToolGenerator` as an empty `IIncrementalGenerator`.)
 
 - [ ] **Step 3: Commit**
@@ -481,24 +481,24 @@ git commit -m "test: add source generator test harness"
 ### Task 6: Generator skeleton that discovers `[McpTool]` methods
 
 **Files:**
-- Create: `src/McpEndpoints.Generator/McpToolGenerator.cs`
-- Create: `src/McpEndpoints.Generator/EndpointModel.cs` (minimal version; expanded in Task 7-8)
-- Create: `src/McpEndpoints.Generator/Emitter.cs` (minimal version; expanded in Task 9)
-- Test: `tests/McpEndpoints.Generator.Tests/GeneratorBasicTests.cs`
+- Create: `src/AspNetCore.Mcp.Generator/McpToolGenerator.cs`
+- Create: `src/AspNetCore.Mcp.Generator/EndpointModel.cs` (minimal version; expanded in Task 7-8)
+- Create: `src/AspNetCore.Mcp.Generator/Emitter.cs` (minimal version; expanded in Task 9)
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/GeneratorBasicTests.cs`
 
 - [ ] **Step 1: Write the failing test**
 
-`tests/McpEndpoints.Generator.Tests/GeneratorBasicTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/GeneratorBasicTests.cs`:
 
 ```csharp
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class GeneratorBasicTests
 {
     private const string Source = """
-        using McpEndpoints;
+        using AspNetCore.Mcp;
         using Microsoft.AspNetCore.Mvc;
 
         namespace Demo;
@@ -525,17 +525,17 @@ public class GeneratorBasicTests
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter GeneratorBasicTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter GeneratorBasicTests`
 Expected: FAIL (no generated output / type missing).
 
 - [ ] **Step 3: Create the minimal `EndpointModel`**
 
-`src/McpEndpoints.Generator/EndpointModel.cs`:
+`src/AspNetCore.Mcp.Generator/EndpointModel.cs`:
 
 ```csharp
-using McpEndpoints.Generator.Internal;
+using AspNetCore.Mcp.Generator.Internal;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public enum ParameterSource { Route, Query, Body }
 
@@ -560,10 +560,10 @@ public sealed record EndpointModel(
 
 - [ ] **Step 4: Create the minimal `Emitter`**
 
-`src/McpEndpoints.Generator/Emitter.cs`:
+`src/AspNetCore.Mcp.Generator/Emitter.cs`:
 
 ```csharp
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class Emitter
 {
@@ -588,19 +588,19 @@ public static class Emitter
 
 - [ ] **Step 5: Create the generator entry point**
 
-`src/McpEndpoints.Generator/McpToolGenerator.cs`:
+`src/AspNetCore.Mcp.Generator/McpToolGenerator.cs`:
 
 ```csharp
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 [Generator(LanguageNames.CSharp)]
 public sealed class McpToolGenerator : IIncrementalGenerator
 {
-    private const string AttributeMetadataName = "McpEndpoints.McpToolAttribute";
+    private const string AttributeMetadataName = "AspNetCore.Mcp.McpToolAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -621,14 +621,14 @@ public sealed class McpToolGenerator : IIncrementalGenerator
 
 - [ ] **Step 6: Create a minimal `ModelBuilder`**
 
-`src/McpEndpoints.Generator/ModelBuilder.cs`:
+`src/AspNetCore.Mcp.Generator/ModelBuilder.cs`:
 
 ```csharp
 using System.Linq;
-using McpEndpoints.Generator.Internal;
+using AspNetCore.Mcp.Generator.Internal;
 using Microsoft.CodeAnalysis;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class ModelBuilder
 {
@@ -658,7 +658,7 @@ public static class ModelBuilder
 
 - [ ] **Step 7: Run test to verify it passes**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter GeneratorBasicTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter GeneratorBasicTests`
 Expected: PASS.
 
 - [ ] **Step 8: Commit**
@@ -673,22 +673,22 @@ git commit -m "feat: incremental generator discovers McpTool actions and emits s
 ### Task 7: Extract verb, route, tool name, and description
 
 **Files:**
-- Modify: `src/McpEndpoints.Generator/ModelBuilder.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/ModelExtractionTests.cs`
+- Modify: `src/AspNetCore.Mcp.Generator/ModelBuilder.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/ModelExtractionTests.cs`
 
 - [ ] **Step 1: Write the failing tests**
 
-`tests/McpEndpoints.Generator.Tests/ModelExtractionTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/ModelExtractionTests.cs`:
 
 ```csharp
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class ModelExtractionTests
 {
     private static string Wrap(string method) => $$"""
-        using McpEndpoints;
+        using AspNetCore.Mcp;
         using Microsoft.AspNetCore.Mvc;
         using System.ComponentModel;
         namespace Demo;
@@ -748,20 +748,20 @@ Apply that change to `GeneratorTestHarness.Run` as part of this task.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter ModelExtractionTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter ModelExtractionTests`
 Expected: FAIL (route empty, verb hardcoded GET, no description, explicit name ignored).
 
 - [ ] **Step 3: Implement extraction in `ModelBuilder`**
 
-Replace `src/McpEndpoints.Generator/ModelBuilder.cs` with:
+Replace `src/AspNetCore.Mcp.Generator/ModelBuilder.cs` with:
 
 ```csharp
 using System.Linq;
 using System.Xml.Linq;
-using McpEndpoints.Generator.Internal;
+using AspNetCore.Mcp.Generator.Internal;
 using Microsoft.CodeAnalysis;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class ModelBuilder
 {
@@ -884,12 +884,12 @@ public static class ModelBuilder
 
 - [ ] **Step 4: Add a temporary classifier stub so it compiles**
 
-`src/McpEndpoints.Generator/ParameterClassifier.cs`:
+`src/AspNetCore.Mcp.Generator/ParameterClassifier.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class ParameterClassifier
 {
@@ -909,7 +909,7 @@ public static class ParameterClassifier
 Replace `Emitter.Emit` body so the extraction is observable by the tests (full emit comes in Task 9):
 
 ```csharp
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class Emitter
 {
@@ -938,7 +938,7 @@ public static class Emitter
 
 - [ ] **Step 6: Run tests to verify they pass**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter ModelExtractionTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter ModelExtractionTests`
 Expected: PASS. Also rerun `--filter GeneratorBasicTests` to confirm no regression.
 
 - [ ] **Step 7: Commit**
@@ -953,8 +953,8 @@ git commit -m "feat: extract verb, route, tool name, and description into model"
 ### Task 8: Classify parameters into route / query / body
 
 **Files:**
-- Modify: `src/McpEndpoints.Generator/ParameterClassifier.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/ParameterMappingTests.cs`
+- Modify: `src/AspNetCore.Mcp.Generator/ParameterClassifier.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/ParameterMappingTests.cs`
 
 Classification rules (Phase 1):
 - If the parameter name appears as `{name}` in the route template, it is a **Route** parameter.
@@ -963,18 +963,18 @@ Classification rules (Phase 1):
 
 - [ ] **Step 1: Write the failing tests**
 
-`tests/McpEndpoints.Generator.Tests/ParameterMappingTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/ParameterMappingTests.cs`:
 
 ```csharp
-using McpEndpoints.Generator;
+using AspNetCore.Mcp.Generator;
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class ParameterMappingTests
 {
     private static string Wrap(string method) => $$"""
-        using McpEndpoints;
+        using AspNetCore.Mcp;
         using Microsoft.AspNetCore.Mvc;
         namespace Demo;
         public record CreateOrderRequest(string Sku, int Qty);
@@ -1019,18 +1019,18 @@ Note: these assertions require the emitter to write a per-parameter comment such
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter ParameterMappingTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter ParameterMappingTests`
 Expected: FAIL (everything currently classified Query; no per-param comment).
 
 - [ ] **Step 3: Implement the classifier**
 
-Replace `src/McpEndpoints.Generator/ParameterClassifier.cs`:
+Replace `src/AspNetCore.Mcp.Generator/ParameterClassifier.cs`:
 
 ```csharp
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class ParameterClassifier
 {
@@ -1080,7 +1080,7 @@ and interpolate `{{paramComments}}` near the route/verb comments.
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter ParameterMappingTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter ParameterMappingTests`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -1097,22 +1097,22 @@ git commit -m "feat: classify endpoint parameters into route/query/body"
 Now replace the observability-only emitter with the real one: a `[McpServerToolType]` class whose tool method mirrors the endpoint's model-bound parameters, resolves `IMcpEndpointInvoker` from DI (injected parameter, excluded from the tool schema by the SDK), builds the path/query/body, and returns the response string.
 
 **Files:**
-- Modify: `src/McpEndpoints.Generator/Emitter.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/EmitterTests.cs`
+- Modify: `src/AspNetCore.Mcp.Generator/Emitter.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/EmitterTests.cs`
 
 - [ ] **Step 1: Write the failing test**
 
-`tests/McpEndpoints.Generator.Tests/EmitterTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/EmitterTests.cs`:
 
 ```csharp
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class EmitterTests
 {
     private const string Source = """
-        using McpEndpoints;
+        using AspNetCore.Mcp;
         using Microsoft.AspNetCore.Mvc;
         namespace Demo;
         public record CreateOrderRequest(string Sku, int Qty);
@@ -1138,7 +1138,7 @@ public class EmitterTests
         var src = result.AllGeneratedSource;
 
         // injected invoker present
-        Assert.Contains("global::McpEndpoints.IMcpEndpointInvoker invoker", src);
+        Assert.Contains("global::AspNetCore.Mcp.IMcpEndpointInvoker invoker", src);
         // model-bound params present
         Assert.Contains("int id", src);
         Assert.Contains("global::Demo.CreateOrderRequest request", src);
@@ -1161,18 +1161,18 @@ public class EmitterTests
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter EmitterTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter EmitterTests`
 Expected: FAIL (current emitter has no params/invoker).
 
 - [ ] **Step 3: Implement the full emitter**
 
-Replace `src/McpEndpoints.Generator/Emitter.cs`:
+Replace `src/AspNetCore.Mcp.Generator/Emitter.cs`:
 
 ```csharp
 using System.Collections.Generic;
 using System.Linq;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class Emitter
 {
@@ -1183,7 +1183,7 @@ public static class Emitter
         // Method signature parameters: injected invoker + cancellation + model-bound params.
         var sigParams = new List<string>
         {
-            "global::McpEndpoints.IMcpEndpointInvoker invoker",
+            "global::AspNetCore.Mcp.IMcpEndpointInvoker invoker",
             "global::System.Threading.CancellationToken cancellationToken = default",
         };
         // model-bound params must come before the defaulted CancellationToken; reorder:
@@ -1191,7 +1191,7 @@ public static class Emitter
             .Select(p => $"{p.TypeFullyQualified} {p.Name}")
             .ToList();
 
-        var allParams = new List<string> { "global::McpEndpoints.IMcpEndpointInvoker invoker" };
+        var allParams = new List<string> { "global::AspNetCore.Mcp.IMcpEndpointInvoker invoker" };
         allParams.AddRange(modelParams);
         allParams.Add("global::System.Threading.CancellationToken cancellationToken = default");
         var paramList = string.Join(",\n            ", allParams);
@@ -1251,7 +1251,7 @@ public static class Emitter
             $"global::System.Convert.ToString({p.Name}, global::System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty))");
 
         var arrayExpr = "new string?[] { " + string.Join(", ", parts) + " }";
-        return $"global::McpEndpoints.QueryStringBuilder.Build({arrayExpr})";
+        return $"global::AspNetCore.Mcp.QueryStringBuilder.Build({arrayExpr})";
     }
 
     private static string BuildBodyExpression(EndpointModel model)
@@ -1268,12 +1268,12 @@ public static class Emitter
 
 - [ ] **Step 4: Add the `QueryStringBuilder` runtime helper referenced by generated code**
 
-`src/McpEndpoints/QueryStringBuilder.cs`:
+`src/AspNetCore.Mcp/QueryStringBuilder.cs`:
 
 ```csharp
 using System.Linq;
 
-namespace McpEndpoints;
+namespace AspNetCore.Mcp;
 
 public static class QueryStringBuilder
 {
@@ -1288,8 +1288,8 @@ public static class QueryStringBuilder
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter EmitterTests`
-Expected: PASS. Rerun the full file `dotnet test tests/McpEndpoints.Generator.Tests` to confirm no regressions.
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter EmitterTests`
+Expected: PASS. Rerun the full file `dotnet test tests/AspNetCore.Mcp.Generator.Tests` to confirm no regressions.
 
 - [ ] **Step 6: Commit**
 
@@ -1305,25 +1305,25 @@ git commit -m "feat: emit real compilable MCP tool body calling the endpoint inv
 A marked endpoint with no `<summary>` and no `[Description]` produces a warning, because a description-less tool is the #1 cause of poor tool-calling. Still generated, but flagged.
 
 **Files:**
-- Create: `src/McpEndpoints.Generator/Diagnostics.cs`
-- Modify: `src/McpEndpoints.Generator/McpToolGenerator.cs`
-- Test: `tests/McpEndpoints.Generator.Tests/DiagnosticsTests.cs`
+- Create: `src/AspNetCore.Mcp.Generator/Diagnostics.cs`
+- Modify: `src/AspNetCore.Mcp.Generator/McpToolGenerator.cs`
+- Test: `tests/AspNetCore.Mcp.Generator.Tests/DiagnosticsTests.cs`
 
 - [ ] **Step 1: Write the failing tests**
 
-`tests/McpEndpoints.Generator.Tests/DiagnosticsTests.cs`:
+`tests/AspNetCore.Mcp.Generator.Tests/DiagnosticsTests.cs`:
 
 ```csharp
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Xunit;
 
-namespace McpEndpoints.Generator.Tests;
+namespace AspNetCore.Mcp.Generator.Tests;
 
 public class DiagnosticsTests
 {
     private static string Wrap(string method) => $$"""
-        using McpEndpoints;
+        using AspNetCore.Mcp;
         using Microsoft.AspNetCore.Mvc;
         namespace Demo;
         [Route("orders")]
@@ -1359,17 +1359,17 @@ public class DiagnosticsTests
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter DiagnosticsTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter DiagnosticsTests`
 Expected: FAIL (no diagnostic emitted).
 
 - [ ] **Step 3: Define the descriptor**
 
-`src/McpEndpoints.Generator/Diagnostics.cs`:
+`src/AspNetCore.Mcp.Generator/Diagnostics.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
 
-namespace McpEndpoints.Generator;
+namespace AspNetCore.Mcp.Generator;
 
 public static class Diagnostics
 {
@@ -1377,7 +1377,7 @@ public static class Diagnostics
         id: "MCPGEN001",
         title: "MCP tool has no description",
         messageFormat: "The MCP tool '{0}' has no description; add an XML <summary> or [Description] so the model knows when to call it",
-        category: "McpEndpoints",
+        category: "AspNetCore.Mcp",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 }
@@ -1401,7 +1401,7 @@ context.RegisterSourceOutput(models, static (spc, model) =>
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `dotnet test tests/McpEndpoints.Generator.Tests --filter DiagnosticsTests`
+Run: `dotnet test tests/AspNetCore.Mcp.Generator.Tests --filter DiagnosticsTests`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -1418,34 +1418,34 @@ git commit -m "feat: warn (MCPGEN001) when a marked endpoint lacks a description
 The generated tools depend on `IMcpEndpointInvoker`. Implement it as a loopback HTTP caller plus an `AddMcpEndpoints()` registration.
 
 **Files:**
-- Create: `src/McpEndpoints/IMcpEndpointInvoker.cs`
-- Create: `src/McpEndpoints/HttpClientMcpEndpointInvoker.cs`
-- Create: `src/McpEndpoints/McpEndpointsOptions.cs`
-- Create: `src/McpEndpoints/ServiceCollectionExtensions.cs`
-- Create: `tests/McpEndpoints.Runtime.Tests/McpEndpoints.Runtime.Tests.csproj`
-- Test: `tests/McpEndpoints.Runtime.Tests/HttpClientMcpEndpointInvokerTests.cs`
+- Create: `src/AspNetCore.Mcp/IMcpEndpointInvoker.cs`
+- Create: `src/AspNetCore.Mcp/HttpClientMcpEndpointInvoker.cs`
+- Create: `src/AspNetCore.Mcp/McpEndpointsOptions.cs`
+- Create: `src/AspNetCore.Mcp/ServiceCollectionExtensions.cs`
+- Create: `tests/AspNetCore.Mcp.Runtime.Tests/AspNetCore.Mcp.Runtime.Tests.csproj`
+- Test: `tests/AspNetCore.Mcp.Runtime.Tests/HttpClientMcpEndpointInvokerTests.cs`
 
 - [ ] **Step 1: Create the runtime test project**
 
 ```bash
-dotnet new xunit -n McpEndpoints.Runtime.Tests -o tests/McpEndpoints.Runtime.Tests
-dotnet sln add tests/McpEndpoints.Runtime.Tests
-dotnet add tests/McpEndpoints.Runtime.Tests reference src/McpEndpoints
+dotnet new xunit -n AspNetCore.Mcp.Runtime.Tests -o tests/AspNetCore.Mcp.Runtime.Tests
+dotnet sln add tests/AspNetCore.Mcp.Runtime.Tests
+dotnet add tests/AspNetCore.Mcp.Runtime.Tests reference src/AspNetCore.Mcp
 ```
 
 - [ ] **Step 2: Write the failing test**
 
-`tests/McpEndpoints.Runtime.Tests/HttpClientMcpEndpointInvokerTests.cs`:
+`tests/AspNetCore.Mcp.Runtime.Tests/HttpClientMcpEndpointInvokerTests.cs`:
 
 ```csharp
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using McpEndpoints;
+using AspNetCore.Mcp;
 using Xunit;
 
-namespace McpEndpoints.Runtime.Tests;
+namespace AspNetCore.Mcp.Runtime.Tests;
 
 public class HttpClientMcpEndpointInvokerTests
 {
@@ -1495,18 +1495,18 @@ public class HttpClientMcpEndpointInvokerTests
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `dotnet test tests/McpEndpoints.Runtime.Tests`
+Run: `dotnet test tests/AspNetCore.Mcp.Runtime.Tests`
 Expected: FAIL (types missing).
 
 - [ ] **Step 4: Implement the interface**
 
-`src/McpEndpoints/IMcpEndpointInvoker.cs`:
+`src/AspNetCore.Mcp/IMcpEndpointInvoker.cs`:
 
 ```csharp
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace McpEndpoints;
+namespace AspNetCore.Mcp;
 
 public interface IMcpEndpointInvoker
 {
@@ -1521,7 +1521,7 @@ public interface IMcpEndpointInvoker
 
 - [ ] **Step 5: Implement the HTTP invoker**
 
-`src/McpEndpoints/HttpClientMcpEndpointInvoker.cs`:
+`src/AspNetCore.Mcp/HttpClientMcpEndpointInvoker.cs`:
 
 ```csharp
 using System;
@@ -1530,7 +1530,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace McpEndpoints;
+namespace AspNetCore.Mcp;
 
 public sealed class HttpClientMcpEndpointInvoker : IMcpEndpointInvoker
 {
@@ -1561,17 +1561,17 @@ public sealed class HttpClientMcpEndpointInvoker : IMcpEndpointInvoker
 
 - [ ] **Step 6: Run test to verify it passes**
 
-Run: `dotnet test tests/McpEndpoints.Runtime.Tests`
+Run: `dotnet test tests/AspNetCore.Mcp.Runtime.Tests`
 Expected: PASS.
 
 - [ ] **Step 7: Add options and DI registration**
 
-`src/McpEndpoints/McpEndpointsOptions.cs`:
+`src/AspNetCore.Mcp/McpEndpointsOptions.cs`:
 
 ```csharp
 using System;
 
-namespace McpEndpoints;
+namespace AspNetCore.Mcp;
 
 public sealed class McpEndpointsOptions
 {
@@ -1580,13 +1580,13 @@ public sealed class McpEndpointsOptions
 }
 ```
 
-`src/McpEndpoints/ServiceCollectionExtensions.cs`:
+`src/AspNetCore.Mcp/ServiceCollectionExtensions.cs`:
 
 ```csharp
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace McpEndpoints;
+namespace AspNetCore.Mcp;
 
 public static class ServiceCollectionExtensions
 {
@@ -1612,7 +1612,7 @@ public static class ServiceCollectionExtensions
 
 - [ ] **Step 8: Verify build and tests**
 
-Run: `dotnet test tests/McpEndpoints.Runtime.Tests`
+Run: `dotnet test tests/AspNetCore.Mcp.Runtime.Tests`
 Expected: PASS (DI types compile; existing tests still green).
 
 - [ ] **Step 9: Commit**
@@ -1629,17 +1629,17 @@ git commit -m "feat: add loopback HTTP invoker and AddMcpEndpoints DI"
 A real ASP.NET app with a `[McpTool]`-marked controller, the official MCP server registered with `WithToolsFromAssembly()`, and `AddMcpEndpoints()`. The test connects an in-memory MCP client, lists tools, asserts the generated tool appears with the injected invoker excluded from its input schema, invokes it, and confirms the loopback call hit the endpoint.
 
 **Files:**
-- Create: `tests/McpEndpoints.IntegrationTests/McpEndpoints.IntegrationTests.csproj`
-- Create: `tests/McpEndpoints.IntegrationTests/SampleApi/OrdersController.cs`
-- Create: `tests/McpEndpoints.IntegrationTests/SampleApi/Program.cs` (or `TestAppFactory`)
-- Test: `tests/McpEndpoints.IntegrationTests/EndToEndToolInvocationTests.cs`
+- Create: `tests/AspNetCore.Mcp.IntegrationTests/AspNetCore.Mcp.IntegrationTests.csproj`
+- Create: `tests/AspNetCore.Mcp.IntegrationTests/SampleApi/OrdersController.cs`
+- Create: `tests/AspNetCore.Mcp.IntegrationTests/SampleApi/Program.cs` (or `TestAppFactory`)
+- Test: `tests/AspNetCore.Mcp.IntegrationTests/EndToEndToolInvocationTests.cs`
 
 - [ ] **Step 1: Create the integration test project**
 
 ```bash
-dotnet new xunit -n McpEndpoints.IntegrationTests -o tests/McpEndpoints.IntegrationTests
-dotnet sln add tests/McpEndpoints.IntegrationTests
-dotnet add tests/McpEndpoints.IntegrationTests reference src/McpEndpoints src/McpEndpoints.Abstractions
+dotnet new xunit -n AspNetCore.Mcp.IntegrationTests -o tests/AspNetCore.Mcp.IntegrationTests
+dotnet sln add tests/AspNetCore.Mcp.IntegrationTests
+dotnet add tests/AspNetCore.Mcp.IntegrationTests reference src/AspNetCore.Mcp src/AspNetCore.Mcp.Abstractions
 ```
 
 Edit the csproj to add the generator (as analyzer), MVC, the MCP server packages, and `WebApplicationFactory`:
@@ -1650,7 +1650,7 @@ Edit the csproj to add the generator (as analyzer), MVC, the MCP server packages
   <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.0" />
   <PackageReference Include="ModelContextProtocol" Version="1.4.0" />
   <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
-  <ProjectReference Include="..\..\src\McpEndpoints.Generator\McpEndpoints.Generator.csproj"
+  <ProjectReference Include="..\..\src\AspNetCore.Mcp.Generator\AspNetCore.Mcp.Generator.csproj"
                     OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 </ItemGroup>
 <PropertyGroup>
@@ -1660,10 +1660,10 @@ Edit the csproj to add the generator (as analyzer), MVC, the MCP server packages
 
 - [ ] **Step 2: Create the sample controller (marked)**
 
-`tests/McpEndpoints.IntegrationTests/SampleApi/OrdersController.cs`:
+`tests/AspNetCore.Mcp.IntegrationTests/SampleApi/OrdersController.cs`:
 
 ```csharp
-using McpEndpoints;
+using AspNetCore.Mcp;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SampleApi;
@@ -1681,10 +1681,10 @@ public class OrdersController : ControllerBase
 
 - [ ] **Step 3: Create the app entry point**
 
-`tests/McpEndpoints.IntegrationTests/SampleApi/Program.cs`:
+`tests/AspNetCore.Mcp.IntegrationTests/SampleApi/Program.cs`:
 
 ```csharp
-using McpEndpoints;
+using AspNetCore.Mcp;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -1701,7 +1701,7 @@ public partial class Program { }
 
 - [ ] **Step 4: Write the failing end-to-end test**
 
-`tests/McpEndpoints.IntegrationTests/EndToEndToolInvocationTests.cs`:
+`tests/AspNetCore.Mcp.IntegrationTests/EndToEndToolInvocationTests.cs`:
 
 ```csharp
 using System.Linq;
@@ -1709,7 +1709,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace McpEndpoints.IntegrationTests;
+namespace AspNetCore.Mcp.IntegrationTests;
 
 public class EndToEndToolInvocationTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -1749,13 +1749,13 @@ Note: a full MCP-protocol round trip (connect an MCP client over the in-memory s
 
 - [ ] **Step 5: Run the test to verify it fails, then passes**
 
-Run: `dotnet test tests/McpEndpoints.IntegrationTests`
+Run: `dotnet test tests/AspNetCore.Mcp.IntegrationTests`
 Expected first run: FAIL if the generator is not yet wired as an analyzer to the project, or if assertions do not hold. Fix wiring (Step 1 csproj), then:
 Expected: PASS.
 
 - [ ] **Step 6: Run the entire suite**
 
-Run: `dotnet test McpEndpoints.sln`
+Run: `dotnet test AspNetCore.Mcp.sln`
 Expected: all test projects PASS.
 
 - [ ] **Step 7: Commit**

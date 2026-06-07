@@ -13,8 +13,8 @@
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
-    <ProjectReference Include="..\..\src\McpEndpoints\McpEndpoints.csproj" />
-    <ProjectReference Include="..\..\src\McpEndpoints.Abstractions\McpEndpoints.Abstractions.csproj" />
-    <ProjectReference Include="..\..\src\McpEndpoints.Generator\McpEndpoints.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\AspNetCore.Mcp\AspNetCore.Mcp.csproj" />
+    <ProjectReference Include="..\..\src\AspNetCore.Mcp.Abstractions\AspNetCore.Mcp.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\AspNetCore.Mcp.Generator\AspNetCore.Mcp.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

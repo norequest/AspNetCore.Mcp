@@ -1,0 +1,37 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace AspNetCore.Mcp.Generator;
+
+[Generator(LanguageNames.CSharp)]
+public sealed class McpToolGenerator : IIncrementalGenerator
+{
+    private const string AttributeMetadataName = "AspNetCore.Mcp.McpToolAttribute";
+
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        var models = context.SyntaxProvider.ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: AttributeMetadataName,
+                predicate: static (node, _) => node is MethodDeclarationSyntax,
+                transform: static (ctx, _) => ModelBuilder.Build(ctx))
+            .Where(static m => m is not null)
+            .Select(static (m, _) => m!);
+
+        context.RegisterSourceOutput(models, static (spc, model) =>
+        {
+            if (!model.HasDescription && model.Location is { } loc)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.MissingDescription, loc.ToLocation(), model.ToolName));
+            }
+
+            if (model.Destructive && !model.AllowDestructive && model.Location is { } dloc)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.DestructiveOperation, dloc.ToLocation(), model.ToolName));
+            }
+
+            spc.AddSource($"{model.GeneratedClassName}.g.cs", Emitter.Emit(model));
+        });
+    }
+}

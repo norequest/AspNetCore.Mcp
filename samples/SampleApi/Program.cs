@@ -1,4 +1,4 @@
-using McpEndpoints;
+using AspNetCore.Mcp;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,8 +1,8 @@
-# McpEndpoints
+# AspNetCore.Mcp
 
 Turn your ASP.NET Core API into **token-efficient MCP tools** at build time.
 
-McpEndpoints is a .NET source generator and runtime that layers **on top of** the official
+AspNetCore.Mcp is a .NET source generator and runtime that layers **on top of** the official
 [`ModelContextProtocol`](https://www.nuget.org/packages/ModelContextProtocol) SDK. You mark the
 controller actions you want an AI agent to use with `[McpTool]`, and at build time the generator
 emits editable MCP tool classes that the official SDK serves over an MCP endpoint. When the agent
@@ -55,7 +55,7 @@ model's context **before** the user asks anything. Naively exposing hundreds of 
 tools balloons that list — a commonly cited example burned ~72% of a 200K context window on tool
 definitions alone. The result is slower, costlier, less accurate agents.
 
-McpEndpoints keeps tool exposure **opt-in**, the generated tools **editable and reviewable**, the
+AspNetCore.Mcp keeps tool exposure **opt-in**, the generated tools **editable and reviewable**, the
 output **trimmable**, destructive operations **flagged**, and the **token cost visible**. The
 official SDK gives you an MCP endpoint; this gives you a *curated, lean* one.
 
@@ -75,9 +75,9 @@ Not on NuGet yet. Reference the projects directly from your API project:
 
 ```xml
 <ItemGroup>
-  <ProjectReference Include="path/to/src/McpEndpoints/McpEndpoints.csproj" />
-  <ProjectReference Include="path/to/src/McpEndpoints.Abstractions/McpEndpoints.Abstractions.csproj" />
-  <ProjectReference Include="path/to/src/McpEndpoints.Generator/McpEndpoints.Generator.csproj"
+  <ProjectReference Include="path/to/src/AspNetCore.Mcp/AspNetCore.Mcp.csproj" />
+  <ProjectReference Include="path/to/src/AspNetCore.Mcp.Abstractions/AspNetCore.Mcp.Abstractions.csproj" />
+  <ProjectReference Include="path/to/src/AspNetCore.Mcp.Generator/AspNetCore.Mcp.Generator.csproj"
                     OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 </ItemGroup>
 
@@ -100,7 +100,7 @@ dotnet add package ModelContextProtocol.AspNetCore
 **1. Mark the actions you want the agent to use.** Opt-in, one attribute each:
 
 ```csharp
-using McpEndpoints;
+using AspNetCore.Mcp;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MyApi.Controllers;
@@ -119,7 +119,7 @@ public class OrdersController : ControllerBase
 **2. Wire it up once in `Program.cs`:**
 
 ```csharp
-using McpEndpoints;
+using AspNetCore.Mcp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -238,10 +238,10 @@ See exactly what your tool surface costs the model, and gate it in CI.
 
 ```bash
 # point it at a running MCP server (it queries tools/list itself)
-dotnet run --project src/McpEndpoints.TokenReport.Tool -- http://localhost:5199/mcp
+dotnet run --project src/AspNetCore.Mcp.TokenReport.Tool -- http://localhost:5199/mcp
 
 # or at a saved tools/list JSON file
-dotnet run --project src/McpEndpoints.TokenReport.Tool -- tools-list.json
+dotnet run --project src/AspNetCore.Mcp.TokenReport.Tool -- tools-list.json
 
 # options
   --markdown       # render a Markdown table (good for CI artifacts / PRs)
@@ -355,18 +355,18 @@ dotnet run --project samples/SampleApi --urls http://localhost:5199
 
 ```
 src/
-  McpEndpoints.Abstractions        [McpTool], [McpToolOutput] attributes  (namespace McpEndpoints)
-  McpEndpoints.Generator           Roslyn incremental source generator
-  McpEndpoints                     runtime: IMcpEndpointInvoker, OutputShaper, AddMcpEndpoints
-  McpEndpoints.TokenReport         offline token-cost analyzer (library)
-  McpEndpoints.TokenReport.Tool    mcp-token-report CLI
+  AspNetCore.Mcp.Abstractions        [McpTool], [McpToolOutput] attributes  (namespace AspNetCore.Mcp)
+  AspNetCore.Mcp.Generator           Roslyn incremental source generator
+  AspNetCore.Mcp                     runtime: IMcpEndpointInvoker, OutputShaper, AddMcpEndpoints
+  AspNetCore.Mcp.TokenReport         offline token-cost analyzer (library)
+  AspNetCore.Mcp.TokenReport.Tool    mcp-token-report CLI
 samples/
   SampleApi                        runnable REST API + Swagger + MCP
 tests/
-  McpEndpoints.Generator.Tests     generator unit / snapshot tests
-  McpEndpoints.Runtime.Tests       invoker, OutputShaper, DI
-  McpEndpoints.IntegrationTests    end-to-end: generated tool -> real endpoint
-  McpEndpoints.TokenReport.Tests   analyzer tests
+  AspNetCore.Mcp.Generator.Tests     generator unit / snapshot tests
+  AspNetCore.Mcp.Runtime.Tests       invoker, OutputShaper, DI
+  AspNetCore.Mcp.IntegrationTests    end-to-end: generated tool -> real endpoint
+  AspNetCore.Mcp.TokenReport.Tests   analyzer tests
 docs/                              design doc, Phase 1 plan, Phase 2 notes
 ```
 
@@ -375,8 +375,8 @@ docs/                              design doc, Phase 1 plan, Phase 2 notes
 ## Building & testing the library
 
 ```bash
-dotnet build McpEndpoints.slnx
-dotnet test  McpEndpoints.slnx      # 69 tests
+dotnet build AspNetCore.Mcp.slnx
+dotnet test  AspNetCore.Mcp.slnx      # 69 tests
 ```
 
 > **Note:** This repo uses a source generator. Incremental builds can occasionally reuse a cached
@@ -384,12 +384,12 @@ dotnet test  McpEndpoints.slnx      # 69 tests
 >
 > ```bash
 > find . -type d \( -name bin -o -name obj \) -not -path '*/.claude/*' -prune -exec rm -rf {} +
-> dotnet build McpEndpoints.slnx
-> dotnet test  McpEndpoints.slnx
+> dotnet build AspNetCore.Mcp.slnx
+> dotnet test  AspNetCore.Mcp.slnx
 > ```
 >
 > If your IDE (Rider/ReSharper, VS) offers to "adjust namespaces to match folder," **decline it** for
-> `src/McpEndpoints.Abstractions` (attributes intentionally live in namespace `McpEndpoints`) and for
+> `src/AspNetCore.Mcp.Abstractions` (attributes intentionally live in namespace `AspNetCore.Mcp`) and for
 > `IsExternalInit.cs` (must stay in `System.Runtime.CompilerServices`). `RootNamespace` and a
 > ReSharper guard are configured to prevent this, but a forced "Code Cleanup" can still override them.
 

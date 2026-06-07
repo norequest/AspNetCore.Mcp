@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/SampleApi/SampleApi.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/AspNetCore.Mcp.Abstractions/AspNetCore.Mcp.Abstractions.csproj" />
+    <Project Path="src/AspNetCore.Mcp.Generator/AspNetCore.Mcp.Generator.csproj" />
+    <Project Path="src/AspNetCore.Mcp.TokenReport.Tool/AspNetCore.Mcp.TokenReport.Tool.csproj" />
+    <Project Path="src/AspNetCore.Mcp.TokenReport/AspNetCore.Mcp.TokenReport.csproj" />
+    <Project Path="src/AspNetCore.Mcp/AspNetCore.Mcp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AspNetCore.Mcp.Generator.Tests/AspNetCore.Mcp.Generator.Tests.csproj" />
+    <Project Path="tests/AspNetCore.Mcp.IntegrationTests/AspNetCore.Mcp.IntegrationTests.csproj" />
+    <Project Path="tests/AspNetCore.Mcp.Runtime.Tests/AspNetCore.Mcp.Runtime.Tests.csproj" />
+    <Project Path="tests/AspNetCore.Mcp.TokenReport.Tests/AspNetCore.Mcp.TokenReport.Tests.csproj" />
+  </Folder>
+</Solution>

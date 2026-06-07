@@ -1,4 +1,4 @@
-using McpEndpoints;
+using AspNetCore.Mcp;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SampleApi.Controllers;
