@@ -15,15 +15,18 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet restore AspNetCore.Mcp.slnx
-      - run: dotnet build AspNetCore.Mcp.slnx -c Release --no-restore
-      - run: dotnet test AspNetCore.Mcp.slnx -c Release --no-build --verbosity normal
+      - run: dotnet restore McpIt.slnx
+      - run: dotnet build McpIt.slnx -c Release --no-restore
+      - run: dotnet test McpIt.slnx -c Release --no-build --verbosity normal
 
   publish:
     # Runs only when you push a version tag like v1.0.0, and only after tests pass.
     needs: build-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required: lets the job mint a GitHub OIDC token for Trusted Publishing
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -37,17 +40,23 @@ jobs:
       - name: Pack
         run: |
           V=${{ steps.ver.outputs.version }}
-          dotnet pack src/AspNetCore.Mcp.Abstractions     -c Release -o artifacts -p:Version=$V
-          dotnet pack src/AspNetCore.Mcp                   -c Release -o artifacts -p:Version=$V
-          dotnet pack src/AspNetCore.Mcp.TokenReport.Tool -c Release -o artifacts -p:Version=$V
+          dotnet pack src/McpIt.Abstractions     -c Release -o artifacts -p:Version=$V
+          dotnet pack src/McpIt                   -c Release -o artifacts -p:Version=$V
+          dotnet pack src/McpIt.TokenReport.Tool -c Release -o artifacts -p:Version=$V
+
+      - name: NuGet login (Trusted Publishing -> short-lived API key)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          # MUST equal your nuget.org account username (Profile -> the @name), NOT the GitHub org.
+          # The Trusted Publishing policy you create on nuget.org is bound to this user.
+          user: norequest
 
       - name: Push to NuGet
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         # NOTE: intentionally NO --skip-duplicate. That flag turns a 409 Conflict
         # ("version already exists" / failed-validation / stuck-validating) into a
         # green build, which once hid a real publish failure. Let conflicts fail loud.
         run: >
           dotnet nuget push "artifacts/*.nupkg"
-          --api-key "$NUGET_API_KEY"
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json

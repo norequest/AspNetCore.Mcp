@@ -1,4 +1,4 @@
-using AspNetCore.Mcp;
+using McpIt;
 
 var builder = WebApplication.CreateBuilder(args);
 
