@@ -187,6 +187,33 @@ public Order GetOrder(int id, string? expand) { ... }   // id -> route, expand -
 public Order Create([FromBody] CreateOrderRequest request) { ... }  // request -> JSON body
 ```
 
+**Class-level defaults.** You can also put `[McpTool]` on the controller class to set defaults for
+its actions. It never exposes anything on its own (actions still need their own `[McpTool]`), so the
+opt-in rule is preserved:
+
+```csharp
+[Route("api/orders")]
+[McpTool(NamePrefix = "orders_", AllowDestructive = true)]   // defaults for this controller
+public class OrdersController : ControllerBase
+{
+    [HttpGet("{id}")]
+    [McpTool]                       // -> "orders_getOrder"
+    public Order GetOrder(int id) { ... }
+
+    [HttpPost]
+    [McpTool]                       // -> "orders_create", destructive guard already acknowledged
+    public Order Create([FromBody] CreateOrderRequest request) { ... }
+
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id) { ... }   // no [McpTool] -> NOT a tool
+}
+```
+
+- `NamePrefix` is prepended to each action's **derived** (camelCase) name. An action that sets an
+  explicit `Name` is used verbatim, with no prefix.
+- `AllowDestructive` on the class acts as a default: an action is acknowledged destructive if either
+  the action or the class sets it.
+
 ### 2. Tool descriptions
 
 A good description is the single biggest factor in whether an agent calls a tool correctly. The

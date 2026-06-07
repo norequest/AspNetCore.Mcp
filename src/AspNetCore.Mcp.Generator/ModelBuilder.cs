@@ -27,14 +27,23 @@ public static class ModelBuilder
         var className = $"{method.ContainingType.Name}_{method.Name}_Tool";
 
         var mcpAttr = ctx.Attributes.FirstOrDefault();
+        var classMcpAttr = GetClassMcpAttribute(method.ContainingType);
+
         var explicitName = mcpAttr?.NamedArguments
             .FirstOrDefault(kv => kv.Key == "Name").Value.Value as string;
+        // Class-level NamePrefix only applies to the DERIVED name; an explicit
+        // action Name fully overrides and is used verbatim with no prefix.
+        var namePrefix = classMcpAttr?.NamedArguments
+            .FirstOrDefault(kv => kv.Key == "NamePrefix").Value.Value as string;
         var toolName = string.IsNullOrWhiteSpace(explicitName)
-            ? ToCamelCase(method.Name)
+            ? (string.IsNullOrWhiteSpace(namePrefix) ? string.Empty : namePrefix!) + ToCamelCase(method.Name)
             : explicitName!;
 
-        var allowDestructive = mcpAttr?.NamedArguments
+        var actionAllowDestructive = mcpAttr?.NamedArguments
             .FirstOrDefault(kv => kv.Key == "AllowDestructive").Value.Value is bool b && b;
+        var classAllowDestructive = classMcpAttr?.NamedArguments
+            .FirstOrDefault(kv => kv.Key == "AllowDestructive").Value.Value is bool cb && cb;
+        var allowDestructive = actionAllowDestructive || classAllowDestructive;
 
         var (httpMethod, methodRoute) = GetVerbAndRoute(method);
         var classRoute = GetClassRoute(method.ContainingType);
@@ -120,6 +129,10 @@ public static class ModelBuilder
         }
         return ("GET", string.Empty);
     }
+
+    private static AttributeData? GetClassMcpAttribute(INamedTypeSymbol type) =>
+        type.GetAttributes().FirstOrDefault(a =>
+            a.AttributeClass?.ToDisplayString() == "AspNetCore.Mcp.McpToolAttribute");
 
     private static string GetClassRoute(INamedTypeSymbol type)
     {
