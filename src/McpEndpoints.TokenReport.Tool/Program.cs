@@ -1,16 +1,23 @@
+using System.Net.Http;
+using System.Text;
 using McpEndpoints.TokenReport;
 
 const string usage = """
 mcp-token-report - offline MCP tools/list token-cost analyzer
 
 Usage:
-  mcp-token-report <path-to-tools-list.json> [--markdown] [--budget N]
+  mcp-token-report <source> [--markdown] [--budget N]
+
+<source> is either:
+  - a path to a tools/list JSON file, or
+  - a URL to a running MCP server endpoint (e.g. http://localhost:5199/mcp),
+    which is queried with a tools/list request.
 
 Options:
   --markdown      Render the report as Markdown instead of plain text.
   --budget N      Fail (exit 1) when the total token cost exceeds N tokens.
 
-Token counts are an OFFLINE heuristic estimate (no network, ~±20%).
+Token counts are an OFFLINE heuristic estimate (no network for tokenizing, ~±20%).
 """;
 
 if (args.Length == 0 || args[0] is "-h" or "--help")
@@ -19,7 +26,7 @@ if (args.Length == 0 || args[0] is "-h" or "--help")
     return args.Length == 0 ? 1 : 0;
 }
 
-var path = args[0];
+var source = args[0];
 var markdown = false;
 int? budget = null;
 
@@ -46,21 +53,39 @@ for (var i = 1; i < args.Length; i++)
     }
 }
 
-if (!File.Exists(path))
-{
-    Console.Error.WriteLine($"error: file not found: {path}");
-    return 1;
-}
-
 string json;
-try
+var isUrl = source.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+         || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+if (isUrl)
 {
-    json = File.ReadAllText(path);
+    try
+    {
+        json = await FetchToolsListAsync(source);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"error: could not query MCP server '{source}': {ex.Message}");
+        return 1;
+    }
 }
-catch (IOException ex)
+else
 {
-    Console.Error.WriteLine($"error: could not read file: {ex.Message}");
-    return 1;
+    if (!File.Exists(source))
+    {
+        Console.Error.WriteLine($"error: file not found: {source}");
+        return 1;
+    }
+
+    try
+    {
+        json = File.ReadAllText(source);
+    }
+    catch (IOException ex)
+    {
+        Console.Error.WriteLine($"error: could not read file: {ex.Message}");
+        return 1;
+    }
 }
 
 IReadOnlyList<ToolDescriptor> tools;
@@ -86,3 +111,37 @@ if (TokenReporter.ExceedsBudget(report, budget))
 }
 
 return 0;
+
+// Queries a running MCP server for its tool list and returns the JSON payload.
+// Handles both a plain JSON response and a Server-Sent-Events (text/event-stream) response.
+static async Task<string> FetchToolsListAsync(string url)
+{
+    using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+    using var request = new HttpRequestMessage(HttpMethod.Post, url);
+    request.Headers.TryAddWithoutValidation("Accept", "application/json, text/event-stream");
+    request.Content = new StringContent(
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}",
+        Encoding.UTF8,
+        "application/json");
+
+    using var response = await http.SendAsync(request);
+    response.EnsureSuccessStatusCode();
+    var body = await response.Content.ReadAsStringAsync();
+    return ExtractJsonPayload(body);
+}
+
+// SSE bodies look like "event: message\ndata: {json}\n\n"; pull the JSON out of the data line(s).
+static string ExtractJsonPayload(string body)
+{
+    if (body.TrimStart().StartsWith('{'))
+        return body;
+
+    var sb = new StringBuilder();
+    foreach (var rawLine in body.Split('\n'))
+    {
+        var line = rawLine.TrimEnd('\r');
+        if (line.StartsWith("data:", StringComparison.Ordinal))
+            sb.Append(line.Substring("data:".Length).TrimStart());
+    }
+    return sb.ToString();
+}

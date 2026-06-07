@@ -13,9 +13,9 @@ builder.Services.AddMcpServer()
     .WithHttpTransport(options => options.Stateless = true)
     .WithToolsFromAssembly();
 
-// The generated tools loop back to this app's own endpoints, so the base
-// address must be the URL this app actually listens on (note the trailing slash).
-builder.Services.AddMcpEndpoints(o => o.BaseAddress = new Uri("http://localhost:5199/"));
+// The generated tools loop back to this app's own endpoints. The base address is
+// detected automatically from each incoming MCP request, so no URL is configured here.
+builder.Services.AddMcpEndpoints();
 
 var app = builder.Build();
 

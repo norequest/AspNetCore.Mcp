@@ -65,6 +65,19 @@ public class ToolListParserTests
     }
 
     [Fact]
+    public void Parse_HandlesMcpResultEnvelope()
+    {
+        // The shape a live MCP server returns: { "result": { "tools": [...] } }
+        const string json = """
+        { "jsonrpc": "2.0", "id": 1, "result": { "tools": [ { "name": "getOrder", "description": "d" } ] } }
+        """;
+
+        var tool = Assert.Single(ToolListParser.Parse(json));
+        Assert.Equal("getOrder", tool.Name);
+        Assert.Equal("d", tool.Description);
+    }
+
+    [Fact]
     public void Parse_ParsesMultipleTools_InOrder()
     {
         const string json = """

@@ -5,20 +5,25 @@ namespace McpEndpoints;
 
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers the loopback invoker that generated MCP tools use to call back into this app's
+    /// own endpoints. By default the base address is detected automatically from each incoming
+    /// MCP request, so no configuration is required.
+    /// </summary>
+    /// <param name="configure">
+    /// Optional configuration. Set <see cref="McpEndpointsOptions.BaseAddress"/> only to override
+    /// auto-detection (e.g. behind a proxy).
+    /// </param>
     public static IServiceCollection AddMcpEndpoints(
         this IServiceCollection services,
-        Action<McpEndpointsOptions> configure)
+        Action<McpEndpointsOptions>? configure = null)
     {
         var options = new McpEndpointsOptions();
-        configure(options);
-        if (options.BaseAddress is null)
-            throw new InvalidOperationException(
-                "McpEndpointsOptions.BaseAddress must be set to the host app's absolute base URL.");
+        configure?.Invoke(options);
 
-        services.AddHttpClient<IMcpEndpointInvoker, HttpClientMcpEndpointInvoker>(client =>
-        {
-            client.BaseAddress = options.BaseAddress;
-        });
+        services.AddHttpContextAccessor();
+        services.AddSingleton(options);
+        services.AddHttpClient<IMcpEndpointInvoker, HttpClientMcpEndpointInvoker>();
 
         return services;
     }

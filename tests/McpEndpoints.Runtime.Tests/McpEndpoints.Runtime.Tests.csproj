@@ -19,6 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- For DefaultHttpContext / HttpContextAccessor used in invoker tests. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\McpEndpoints\McpEndpoints.csproj" />
   </ItemGroup>
 

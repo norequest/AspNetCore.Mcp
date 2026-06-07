@@ -1,4 +1,6 @@
 using System.Reflection;
+using McpEndpoints;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace McpEndpoints.IntegrationTests;
@@ -36,7 +38,10 @@ public class EndToEndToolInvocationTests : IClassFixture<WebApplicationFactory<P
         // Wire the invoker to the in-memory test server's client so the generated
         // tool's loopback call actually reaches the SampleApi endpoint.
         var client = _factory.CreateClient();
-        var invoker = new HttpClientMcpEndpointInvoker(client);
+        // Explicit base address = the in-memory test server's address, so the loopback call
+        // routes through the factory client to the SampleApi endpoint.
+        var invoker = new HttpClientMcpEndpointInvoker(
+            client, new HttpContextAccessor(), new McpEndpointsOptions { BaseAddress = client.BaseAddress });
 
         var invokeMethod = FindToolInvokeMethod();
 

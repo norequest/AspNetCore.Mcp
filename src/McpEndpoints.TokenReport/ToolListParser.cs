@@ -30,9 +30,7 @@ public static class ToolListParser
 
         var result = new List<ToolDescriptor>();
 
-        if (root.ValueKind != JsonValueKind.Object ||
-            !root.TryGetProperty("tools", out var toolsElement) ||
-            toolsElement.ValueKind != JsonValueKind.Array)
+        if (!TryFindToolsArray(root, out var toolsElement))
         {
             return result;
         }
@@ -67,5 +65,35 @@ public static class ToolListParser
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Locates the <c>tools</c> array, supporting both a bare <c>{ "tools": [...] }</c> document
+    /// and a full MCP response <c>{ "result": { "tools": [...] } }</c>.
+    /// </summary>
+    private static bool TryFindToolsArray(JsonElement root, out JsonElement toolsElement)
+    {
+        toolsElement = default;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (root.TryGetProperty("tools", out var direct) && direct.ValueKind == JsonValueKind.Array)
+        {
+            toolsElement = direct;
+            return true;
+        }
+
+        if (root.TryGetProperty("result", out var resultElement) &&
+            resultElement.ValueKind == JsonValueKind.Object &&
+            resultElement.TryGetProperty("tools", out var nested) &&
+            nested.ValueKind == JsonValueKind.Array)
+        {
+            toolsElement = nested;
+            return true;
+        }
+
+        return false;
     }
 }
