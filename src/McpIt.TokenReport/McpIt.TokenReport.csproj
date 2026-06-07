@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Not published standalone; bundled into the McpIt.TokenReport.Tool package. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

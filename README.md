@@ -1,8 +1,8 @@
-# AspNetCore.Mcp
+# McpIt
 
 Turn your ASP.NET Core API into **token-efficient MCP tools** at build time.
 
-AspNetCore.Mcp is a .NET source generator and runtime that layers **on top of** the official
+McpIt is a .NET source generator and runtime that layers **on top of** the official
 [`ModelContextProtocol`](https://www.nuget.org/packages/ModelContextProtocol) SDK. You mark the
 controller actions you want an AI agent to use with `[McpTool]`, and at build time the generator
 emits editable MCP tool classes that the official SDK serves over an MCP endpoint. When the agent
@@ -55,7 +55,7 @@ model's context **before** the user asks anything. Naively exposing hundreds of 
 tools balloons that list — a commonly cited example burned ~72% of a 200K context window on tool
 definitions alone. The result is slower, costlier, less accurate agents.
 
-AspNetCore.Mcp keeps tool exposure **opt-in**, the generated tools **editable and reviewable**, the
+McpIt keeps tool exposure **opt-in**, the generated tools **editable and reviewable**, the
 output **trimmable**, destructive operations **flagged**, and the **token cost visible**. The
 official SDK gives you an MCP endpoint; this gives you a *curated, lean* one.
 
@@ -72,15 +72,15 @@ official SDK gives you an MCP endpoint; this gives you a *curated, lean* one.
 ## Install
 
 > Not on NuGet yet. Once published, install will be a single package:
-> `dotnet add package AspNetCore.Mcp`. For now, consume via project references.
+> `dotnet add package McpIt`. For now, consume via project references.
 
 Reference the projects directly from your API project:
 
 ```xml
 <ItemGroup>
-  <ProjectReference Include="path/to/src/AspNetCore.Mcp/AspNetCore.Mcp.csproj" />
-  <ProjectReference Include="path/to/src/AspNetCore.Mcp.Abstractions/AspNetCore.Mcp.Abstractions.csproj" />
-  <ProjectReference Include="path/to/src/AspNetCore.Mcp.Generator/AspNetCore.Mcp.Generator.csproj"
+  <ProjectReference Include="path/to/src/McpIt/McpIt.csproj" />
+  <ProjectReference Include="path/to/src/McpIt.Abstractions/McpIt.Abstractions.csproj" />
+  <ProjectReference Include="path/to/src/McpIt.Generator/McpIt.Generator.csproj"
                     OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 </ItemGroup>
 
@@ -91,7 +91,7 @@ Reference the projects directly from your API project:
 ```
 
 The official MCP SDK (`ModelContextProtocol.AspNetCore`, which provides `AddMcpServer`/`MapMcp` and
-the tool attributes the generated code uses) comes in **transitively** via `AspNetCore.Mcp` — you do
+the tool attributes the generated code uses) comes in **transitively** via `McpIt` — you do
 not need to add it yourself. To pin a specific version, add it explicitly:
 
 ```bash
@@ -105,7 +105,7 @@ dotnet add package ModelContextProtocol.AspNetCore   # optional; only to control
 **1. Mark the actions you want the agent to use.** Opt-in, one attribute each:
 
 ```csharp
-using AspNetCore.Mcp;
+using McpIt;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MyApi.Controllers;
@@ -124,7 +124,7 @@ public class OrdersController : ControllerBase
 **2. Wire it up once in `Program.cs`:**
 
 ```csharp
-using AspNetCore.Mcp;
+using McpIt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -270,10 +270,10 @@ See exactly what your tool surface costs the model, and gate it in CI.
 
 ```bash
 # point it at a running MCP server (it queries tools/list itself)
-dotnet run --project src/AspNetCore.Mcp.TokenReport.Tool -- http://localhost:5199/mcp
+dotnet run --project src/McpIt.TokenReport.Tool -- http://localhost:5199/mcp
 
 # or at a saved tools/list JSON file
-dotnet run --project src/AspNetCore.Mcp.TokenReport.Tool -- tools-list.json
+dotnet run --project src/McpIt.TokenReport.Tool -- tools-list.json
 
 # options
   --markdown       # render a Markdown table (good for CI artifacts / PRs)
@@ -387,18 +387,18 @@ dotnet run --project samples/SampleApi --urls http://localhost:5199
 
 ```
 src/
-  AspNetCore.Mcp.Abstractions        [McpTool], [McpToolOutput] attributes  (namespace AspNetCore.Mcp)
-  AspNetCore.Mcp.Generator           Roslyn incremental source generator
-  AspNetCore.Mcp                     runtime: IMcpEndpointInvoker, OutputShaper, AddMcpEndpoints
-  AspNetCore.Mcp.TokenReport         offline token-cost analyzer (library)
-  AspNetCore.Mcp.TokenReport.Tool    mcp-token-report CLI
+  McpIt.Abstractions        [McpTool], [McpToolOutput] attributes  (namespace McpIt)
+  McpIt.Generator           Roslyn incremental source generator
+  McpIt                     runtime: IMcpEndpointInvoker, OutputShaper, AddMcpEndpoints
+  McpIt.TokenReport         offline token-cost analyzer (library)
+  McpIt.TokenReport.Tool    mcp-token-report CLI
 samples/
   SampleApi                        runnable REST API + Swagger + MCP
 tests/
-  AspNetCore.Mcp.Generator.Tests     generator unit / snapshot tests
-  AspNetCore.Mcp.Runtime.Tests       invoker, OutputShaper, DI
-  AspNetCore.Mcp.IntegrationTests    end-to-end: generated tool -> real endpoint
-  AspNetCore.Mcp.TokenReport.Tests   analyzer tests
+  McpIt.Generator.Tests     generator unit / snapshot tests
+  McpIt.Runtime.Tests       invoker, OutputShaper, DI
+  McpIt.IntegrationTests    end-to-end: generated tool -> real endpoint
+  McpIt.TokenReport.Tests   analyzer tests
 docs/                              design doc, Phase 1 plan, Phase 2 notes
 ```
 
@@ -407,8 +407,8 @@ docs/                              design doc, Phase 1 plan, Phase 2 notes
 ## Building & testing the library
 
 ```bash
-dotnet build AspNetCore.Mcp.slnx
-dotnet test  AspNetCore.Mcp.slnx      # 69 tests
+dotnet build McpIt.slnx
+dotnet test  McpIt.slnx      # 69 tests
 ```
 
 > **Note:** This repo uses a source generator. Incremental builds can occasionally reuse a cached
@@ -416,12 +416,12 @@ dotnet test  AspNetCore.Mcp.slnx      # 69 tests
 >
 > ```bash
 > find . -type d \( -name bin -o -name obj \) -not -path '*/.claude/*' -prune -exec rm -rf {} +
-> dotnet build AspNetCore.Mcp.slnx
-> dotnet test  AspNetCore.Mcp.slnx
+> dotnet build McpIt.slnx
+> dotnet test  McpIt.slnx
 > ```
 >
 > If your IDE (Rider/ReSharper, VS) offers to "adjust namespaces to match folder," **decline it** for
-> `src/AspNetCore.Mcp.Abstractions` (attributes intentionally live in namespace `AspNetCore.Mcp`) and for
+> `src/McpIt.Abstractions` (attributes intentionally live in namespace `McpIt`) and for
 > `IsExternalInit.cs` (must stay in `System.Runtime.CompilerServices`). `RootNamespace` and a
 > ReSharper guard are configured to prevent this, but a forced "Code Cleanup" can still override them.
 

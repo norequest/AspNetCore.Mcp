@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/SampleApi/SampleApi.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/McpIt.Abstractions/McpIt.Abstractions.csproj" />
+    <Project Path="src/McpIt.Generator/McpIt.Generator.csproj" />
+    <Project Path="src/McpIt.TokenReport.Tool/McpIt.TokenReport.Tool.csproj" />
+    <Project Path="src/McpIt.TokenReport/McpIt.TokenReport.csproj" />
+    <Project Path="src/McpIt/McpIt.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/McpIt.Generator.Tests/McpIt.Generator.Tests.csproj" />
+    <Project Path="tests/McpIt.IntegrationTests/McpIt.IntegrationTests.csproj" />
+    <Project Path="tests/McpIt.Runtime.Tests/McpIt.Runtime.Tests.csproj" />
+    <Project Path="tests/McpIt.TokenReport.Tests/McpIt.TokenReport.Tests.csproj" />
+  </Folder>
+</Solution>

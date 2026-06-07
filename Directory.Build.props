@@ -2,14 +2,14 @@
 
   <!-- Shared NuGet package metadata for all packable projects. -->
   <PropertyGroup>
-    <Version>1.1.0</Version>
+    <Version>1.0.0</Version>
     <Authors>Tornike Matiashvili</Authors>
-    <Product>AspNetCore.Mcp</Product>
+    <Product>McpIt</Product>
     <Copyright>Copyright (c) 2026 Tornike Matiashvili</Copyright>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/norequest/AspNetCore.Mcp</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/norequest/AspNetCore.Mcp</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/norequest/McpIt</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/norequest/McpIt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>mcp;model-context-protocol;aspnetcore;ai;llm;source-generator;tools;agents</PackageTags>
