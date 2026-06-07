@@ -406,4 +406,5 @@ Phase notes: [`docs/phase2-token-report.md`](docs/phase2-token-report.md).
 
 ## License
 
-TBD.
+[MIT](LICENSE) — free for any use (personal or commercial), no warranty. Just keep the copyright
+and license notice.
