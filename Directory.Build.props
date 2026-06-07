@@ -5,6 +5,7 @@
     <Version>1.0.0</Version>
     <Authors>Tornike Matiashvili</Authors>
     <Product>McpIt</Product>
+    <Title>McpIt - ASP.NET Core endpoints to MCP tools</Title>
     <Copyright>Copyright (c) 2026 Tornike Matiashvili</Copyright>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -12,7 +13,8 @@
     <RepositoryUrl>https://github.com/norequest/McpIt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>mcp;model-context-protocol;aspnetcore;ai;llm;source-generator;tools;agents</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>mcp;model-context-protocol;aspnetcore;asp-net-core;roslyn;source-generator;ai;llm;tools;agents;minimal-api</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 
     <IncludeSymbols>true</IncludeSymbols>
@@ -27,6 +29,11 @@
   <!-- Ship the repo README inside every package (for the NuGet.org package page). -->
   <ItemGroup Condition="'$(IsPackable)' != 'false' and Exists('$(MSBuildThisFileDirectory)README.md')">
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!-- Ship the package icon inside every package (for the NuGet.org package page). -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false' and Exists('$(MSBuildThisFileDirectory)assets/icon.png')">
+    <None Include="$(MSBuildThisFileDirectory)assets/icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
 </Project>

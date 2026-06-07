@@ -1,0 +1,16 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brand background: deep indigo, good contrast on light and dark NuGet themes -->
+  <rect width="128" height="128" rx="26" fill="#4F46E5"/>
+
+  <!-- Endpoint node (left): a route/endpoint origin -->
+  <circle cx="34" cy="64" r="11" fill="#FFFFFF"/>
+
+  <!-- Connector arrow: endpoint -> tool -->
+  <rect x="45" y="60.5" width="30" height="7" rx="3.5" fill="#C7D2FE"/>
+  <path d="M73 54 L88 64 L73 74 Z" fill="#C7D2FE"/>
+
+  <!-- MCP tool node (right): rounded square representing the generated tool -->
+  <rect x="86" y="46" width="36" height="36" rx="9" fill="#FFFFFF"/>
+  <!-- Stylized 'M' monogram inside the tool node -->
+  <path d="M95 73 L95 55 L100 55 L104 64 L108 55 L113 55 L113 73 L108.5 73 L108.5 62 L105 70 L103 70 L99.5 62 L99.5 73 Z" fill="#4F46E5"/>
+</svg>

@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <Description>Turn your ASP.NET Core API into token-efficient MCP tools at build time. A Roslyn source generator and runtime on top of the official Model Context Protocol SDK. Add this one package; the [McpTool] attributes, the generator, and the MCP server SDK come with it.</Description>
+    <Description>Turn your ASP.NET Core endpoints into token-efficient Model Context Protocol (MCP) tools at build time. A Roslyn source generator plus runtime built on the official MCP SDK: add this one package and the [McpTool] attributes, the generator, and the MCP server SDK all come with it. Works with minimal APIs and controllers, zero reflection at runtime.</Description>
   </PropertyGroup>
 
   <ItemGroup>
