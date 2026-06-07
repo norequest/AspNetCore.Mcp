@@ -1,6 +1,3 @@
-using Microsoft.CodeAnalysis;
-using Xunit;
-
 namespace McpEndpoints.Generator.Tests;
 
 public class DiagnosticsTests

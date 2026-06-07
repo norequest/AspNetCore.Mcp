@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- Public attributes intentionally live in the `McpEndpoints` namespace (clean
+         `using McpEndpoints;` API), not `McpEndpoints.Abstractions`. RootNamespace makes
+         that the tooling-expected namespace so IDE "adjust namespaces" won't move them. -->
+    <RootNamespace>McpEndpoints</RootNamespace>
   </PropertyGroup>
 
 </Project>

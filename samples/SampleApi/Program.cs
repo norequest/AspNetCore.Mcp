@@ -10,4 +10,7 @@ app.MapControllers();
 app.MapMcp();
 app.Run();
 
-public partial class Program { }
+namespace SampleApi
+{
+    public partial class Program { }
+}

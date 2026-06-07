@@ -1,9 +1,4 @@
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using McpEndpoints;
-using Xunit;
 
 namespace McpEndpoints.Runtime.Tests;
 

@@ -1,6 +1,3 @@
-using McpEndpoints;
-using Xunit;
-
 namespace McpEndpoints.Runtime.Tests;
 
 public class OutputShaperTests

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 
 namespace McpEndpoints;
@@ -70,11 +69,9 @@ public static class OutputShaper
         writer.WriteStartObject();
         foreach (var name in fields)
         {
-            if (obj.TryGetProperty(name, out var value))
-            {
-                writer.WritePropertyName(name);
-                value.WriteTo(writer);
-            }
+            if (!obj.TryGetProperty(name, out var value)) continue;
+            writer.WritePropertyName(name);
+            value.WriteTo(writer);
         }
         writer.WriteEndObject();
     }

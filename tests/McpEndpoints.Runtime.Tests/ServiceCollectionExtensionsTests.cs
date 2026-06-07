@@ -1,7 +1,4 @@
-using System;
-using McpEndpoints;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace McpEndpoints.Runtime.Tests;
 

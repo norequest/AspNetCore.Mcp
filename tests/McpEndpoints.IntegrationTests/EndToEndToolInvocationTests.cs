@@ -1,11 +1,5 @@
-using System;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using McpEndpoints;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Xunit;
 
 namespace McpEndpoints.IntegrationTests;
 

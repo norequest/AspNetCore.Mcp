@@ -1,5 +1,3 @@
-using McpEndpoints.TokenReport;
-
 namespace McpEndpoints.TokenReport.Tests;
 
 public class TokenReporterTests

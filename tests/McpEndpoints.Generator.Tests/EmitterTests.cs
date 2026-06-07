@@ -1,6 +1,4 @@
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Xunit;
 
 namespace McpEndpoints.Generator.Tests;
 

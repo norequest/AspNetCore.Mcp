@@ -1,9 +1,6 @@
-using System.Linq;
 using McpEndpoints.Generator.Internal;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Xunit;
 
 namespace McpEndpoints.Generator.Tests;
 

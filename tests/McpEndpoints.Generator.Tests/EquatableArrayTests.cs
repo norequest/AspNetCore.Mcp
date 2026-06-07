@@ -1,5 +1,4 @@
 using McpEndpoints.Generator.Internal;
-using Xunit;
 
 namespace McpEndpoints.Generator.Tests;
 

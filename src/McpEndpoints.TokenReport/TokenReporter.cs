@@ -45,6 +45,6 @@ public static class TokenReporter
     public static bool ExceedsBudget(TokenReport report, int? budget)
     {
         ArgumentNullException.ThrowIfNull(report);
-        return budget is int b && report.TotalTokens > b;
+        return budget is { } b && report.TotalTokens > b;
     }
 }

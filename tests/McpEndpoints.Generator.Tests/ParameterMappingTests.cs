@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace McpEndpoints.Generator.Tests;
 
 public class ParameterMappingTests

@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Basic.Reference.Assemblies;
-using McpEndpoints.Generator;
+using McpEndpoints;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -22,7 +20,7 @@ public static class GeneratorTestHarness
 
         var extraTypes = new[]
         {
-            typeof(McpEndpoints.McpToolAttribute),
+            typeof(McpToolAttribute),
             typeof(ModelContextProtocol.Server.McpServerToolAttribute),
             typeof(Microsoft.AspNetCore.Mvc.ControllerBase),
             typeof(Microsoft.AspNetCore.Mvc.HttpGetAttribute),
