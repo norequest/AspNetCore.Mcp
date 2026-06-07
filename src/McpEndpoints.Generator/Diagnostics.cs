@@ -11,4 +11,12 @@ public static class Diagnostics
         category: "McpEndpoints",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DestructiveOperation = new(
+        id: "MCPGEN002",
+        title: "Destructive operation exposed as MCP tool",
+        messageFormat: "destructive operation '{0}' is exposed as an MCP tool; set [McpTool(AllowDestructive = true)] to acknowledge",
+        category: "McpEndpoints",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
 }

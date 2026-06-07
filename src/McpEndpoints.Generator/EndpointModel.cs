@@ -17,7 +17,15 @@ public sealed record EndpointModel(
     string HttpMethod,
     string RouteTemplate,
     EquatableArray<ParameterModel> Parameters,
+    bool ReadOnly,
+    bool Destructive,
+    bool Idempotent,
+    bool AllowDestructive,
+    int? OutputMaxLength,
+    EquatableArray<string> OutputFields,
     LocationInfo? Location)
 {
     public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
+
+    public bool HasOutputShaping => OutputMaxLength.HasValue || OutputFields.Count > 0;
 }
