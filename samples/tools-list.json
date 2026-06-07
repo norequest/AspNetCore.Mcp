@@ -1,0 +1,41 @@
+{
+  "tools": [
+    {
+      "name": "getOrder",
+      "description": "Gets an order by its id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "id": { "type": "integer" } },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "searchOrders",
+      "description": "Searches orders with rich filtering. Supports filtering by customer, status, date range, minimum and maximum total, currency, fulfilment channel, and free-text query, with paging and sorting. Returns a paged list of full order objects including line items, addresses, and payment details.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Free-text search across order id, customer name, and email." },
+          "customerId": { "type": "string", "description": "Filter to a single customer." },
+          "status": { "type": "string", "enum": ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"] },
+          "fromDate": { "type": "string", "format": "date-time" },
+          "toDate": { "type": "string", "format": "date-time" },
+          "minTotal": { "type": "number" },
+          "maxTotal": { "type": "number" },
+          "currency": { "type": "string" },
+          "channel": { "type": "string", "enum": ["web", "mobile", "pos", "marketplace"] },
+          "page": { "type": "integer", "default": 1 },
+          "pageSize": { "type": "integer", "default": 20 },
+          "sortBy": { "type": "string", "enum": ["createdAt", "total", "status"] },
+          "sortDirection": { "type": "string", "enum": ["asc", "desc"] }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "ping",
+      "description": "Health check.",
+      "inputSchema": { "type": "object", "properties": {} }
+    }
+  ]
+}
