@@ -26,6 +26,12 @@ public sealed class McpToolGenerator : IIncrementalGenerator
                     Diagnostics.MissingDescription, loc.ToLocation(), model.ToolName));
             }
 
+            if (model.Destructive && !model.AllowDestructive && model.Location is { } dloc)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.DestructiveOperation, dloc.ToLocation(), model.ToolName));
+            }
+
             spc.AddSource($"{model.GeneratedClassName}.g.cs", Emitter.Emit(model));
         });
     }

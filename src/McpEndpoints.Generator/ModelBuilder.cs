@@ -33,11 +33,18 @@ public static class ModelBuilder
             ? ToCamelCase(method.Name)
             : explicitName!;
 
+        var allowDestructive = mcpAttr?.NamedArguments
+            .FirstOrDefault(kv => kv.Key == "AllowDestructive").Value.Value is bool b && b;
+
         var (httpMethod, methodRoute) = GetVerbAndRoute(method);
         var classRoute = GetClassRoute(method.ContainingType);
         var route = CombineRoutes(classRoute, methodRoute);
 
         var description = GetXmlSummary(method) ?? GetDescriptionAttribute(method);
+
+        var (readOnly, destructive, idempotent) = DeriveSafety(httpMethod);
+
+        var (outputMaxLength, outputFields) = GetOutputShaping(method);
 
         var parameters = method.Parameters
             .Select(p => ParameterClassifier.Classify(p, route))
@@ -51,7 +58,50 @@ public static class ModelBuilder
             HttpMethod: httpMethod,
             RouteTemplate: route,
             Parameters: new EquatableArray<ParameterModel>(parameters),
+            ReadOnly: readOnly,
+            Destructive: destructive,
+            Idempotent: idempotent,
+            AllowDestructive: allowDestructive,
+            OutputMaxLength: outputMaxLength,
+            OutputFields: new EquatableArray<string>(outputFields),
             Location: LocationInfo.From(method.Locations.FirstOrDefault() ?? Location.None));
+    }
+
+    private static (bool ReadOnly, bool Destructive, bool Idempotent) DeriveSafety(string verb) => verb switch
+    {
+        "GET" => (true, false, true),
+        "HEAD" => (true, false, true),
+        "POST" => (false, true, false),
+        "PUT" => (false, true, true),
+        "PATCH" => (false, true, false),
+        "DELETE" => (false, true, true),
+        _ => (false, false, false),
+    };
+
+    private static (int? MaxLength, string[] Fields) GetOutputShaping(IMethodSymbol method)
+    {
+        var attr = method.GetAttributes().FirstOrDefault(a =>
+            a.AttributeClass?.ToDisplayString() == "McpEndpoints.McpToolOutputAttribute");
+        if (attr is null)
+            return (null, System.Array.Empty<string>());
+
+        int? maxLength = null;
+        var maxArg = attr.NamedArguments.FirstOrDefault(kv => kv.Key == "MaxLength");
+        if (maxArg.Key == "MaxLength" && maxArg.Value.Value is int m && m > 0)
+            maxLength = m;
+
+        var fields = System.Array.Empty<string>();
+        var fieldsArg = attr.NamedArguments.FirstOrDefault(kv => kv.Key == "Fields");
+        if (fieldsArg.Key == "Fields" && !fieldsArg.Value.IsNull)
+        {
+            fields = fieldsArg.Value.Values
+                .Select(v => v.Value as string)
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Select(s => s!)
+                .ToArray();
+        }
+
+        return (maxLength, fields);
     }
 
     private static (string Verb, string Route) GetVerbAndRoute(IMethodSymbol method)
