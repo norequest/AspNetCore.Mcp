@@ -5,3 +5,6 @@ obj/
 .idea/
 .DS_Store
 artifacts/
+
+# Marketing/promotion material is kept out of the repo (planned separately).
+docs/marketing/
