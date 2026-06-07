@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Not published standalone; bundled into the AspNetCore.Mcp.TokenReport.Tool package. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

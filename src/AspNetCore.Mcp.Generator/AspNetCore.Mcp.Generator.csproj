@@ -6,6 +6,8 @@
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Not published standalone; bundled into the AspNetCore.Mcp package's analyzers folder. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <!-- Pinned to match the Roslyn version bundled in the .NET 10 SDK (5.0.x).

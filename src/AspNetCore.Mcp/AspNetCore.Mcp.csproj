@@ -3,11 +3,28 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <Description>Turn your ASP.NET Core API into token-efficient MCP tools at build time. A Roslyn source generator and runtime on top of the official Model Context Protocol SDK. Add this one package; the [McpTool] attributes, the generator, and the MCP server SDK come with it.</Description>
   </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <!-- Flows transitively to consumers: provides AddMcpServer/MapMcp and the
          ModelContextProtocol.Server attributes the generated tools reference. -->
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Abstractions ship as a package dependency (consumers get [McpTool]/[McpToolOutput]). -->
+    <ProjectReference Include="..\AspNetCore.Mcp.Abstractions\AspNetCore.Mcp.Abstractions.csproj" />
+    <!-- Generator is bundled into THIS package's analyzers folder (below), not a dependency. -->
+    <ProjectReference Include="..\AspNetCore.Mcp.Generator\AspNetCore.Mcp.Generator.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Bundle the source generator DLL into analyzers/dotnet/cs so it applies to consumers of this
+       single package. The ProjectReference above guarantees it is built before pack collects this. -->
+  <ItemGroup>
+    <None Include="..\AspNetCore.Mcp.Generator\bin\$(Configuration)\netstandard2.0\AspNetCore.Mcp.Generator.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 </Project>

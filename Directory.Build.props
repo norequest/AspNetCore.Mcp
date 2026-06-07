@@ -1,0 +1,33 @@
+<Project>
+
+  <!-- Shared NuGet package metadata for all packable projects. -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>Tornike Matiashvili</Authors>
+    <Company>Prixio</Company>
+    <Product>AspNetCore.Mcp</Product>
+    <Copyright>Copyright (c) 2026 Tornike Matiashvili</Copyright>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/norequest/AspNetCore.Mcp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/norequest/AspNetCore.Mcp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>mcp;model-context-protocol;aspnetcore;ai;llm;source-generator;tools;agents</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Deterministic, tidy packages. -->
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- Ship the repo README inside every package (for the NuGet.org package page). -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false' and Exists('$(MSBuildThisFileDirectory)README.md')">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+</Project>

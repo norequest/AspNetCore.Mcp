@@ -8,6 +8,7 @@
          `using AspNetCore.Mcp;` API), not `AspNetCore.Mcp.Abstractions`. RootNamespace makes
          that the tooling-expected namespace so IDE "adjust namespaces" won't move them. -->
     <RootNamespace>AspNetCore.Mcp</RootNamespace>
+    <Description>Attributes ([McpTool], [McpToolOutput]) for AspNetCore.Mcp, which turns ASP.NET Core endpoints into MCP tools at build time.</Description>
   </PropertyGroup>
 
 </Project>
