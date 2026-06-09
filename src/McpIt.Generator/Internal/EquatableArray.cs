@@ -11,7 +11,7 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
 {
     private readonly ImmutableArray<T> _array;
 
-    public EquatableArray(IEnumerable<T> items) => _array = [..items];
+    public EquatableArray(IEnumerable<T> items) => _array = items.ToImmutableArray();
     public EquatableArray(ImmutableArray<T> items) => _array = items;
 
     public int Count => _array.IsDefault ? 0 : _array.Length;

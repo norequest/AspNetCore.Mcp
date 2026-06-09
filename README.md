@@ -4,7 +4,7 @@
 
 # McpIt
 
-**You already have a Web API. Expose it to AI agents as MCP tools at build time: one `[McpTool]` attribute, zero reflection, zero proxy, zero hand-written server.**
+**You already have a Web API. Expose it to AI agents as MCP tools at build time: one `[McpTool]` attribute, reflection-free for read tools, zero proxy, zero hand-written server.**
 
 [![NuGet](https://img.shields.io/nuget/v/McpIt.svg)](https://www.nuget.org/packages/McpIt)
 [![Downloads](https://img.shields.io/nuget/dt/McpIt.svg)](https://www.nuget.org/packages/McpIt)
@@ -15,7 +15,7 @@
 
 ---
 
-McpIt is a build-time Roslyn source generator that turns your existing ASP.NET Core endpoints into [Model Context Protocol](https://modelcontextprotocol.io) tools. The official MCP C# SDK makes you hand-write `[McpServerTool]` classes for every operation you want an agent to use. McpIt generates those tool classes for you from the controller actions and minimal-API endpoints you already have: you mark an action with `[McpTool]`, and at compile time McpIt emits the MCP tool on top of the official [`ModelContextProtocol.AspNetCore`](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore) SDK. No reflection, no internal HTTP self-call, no separate server to write and keep in sync.
+McpIt is a build-time Roslyn source generator that turns your existing ASP.NET Core endpoints into [Model Context Protocol](https://modelcontextprotocol.io) tools. The official MCP C# SDK makes you hand-write `[McpServerTool]` classes for every operation you want an agent to use. McpIt generates those tool classes for you from the controller actions and minimal-API endpoints you already have: you mark an action with `[McpTool]`, and at compile time McpIt emits the MCP tool on top of the official [`ModelContextProtocol.AspNetCore`](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore) SDK. No runtime reflection for tool discovery, no internal HTTP self-call, no separate server to write and keep in sync.
 
 ---
 
@@ -103,7 +103,7 @@ To an MCP client, a `tools/list` call now returns the tool:
 }
 ```
 
-When the agent calls `getOrder`, McpIt invokes your real `GetOrder` action in-process, so your routing, model binding, validation, and business logic all run exactly as they do for an HTTP caller. There is no second HTTP request and no reflection at runtime.
+When the agent calls `getOrder`, McpIt invokes your real `GetOrder` action in-process, so your routing, model binding, validation, and business logic all run exactly as they do for an HTTP caller. There is no second HTTP request and no reflection at runtime for the call path (see the AOT note for request-body serialization).
 
 ---
 
@@ -115,7 +115,7 @@ The only comparable library, `Api.ToMcp`, performs an internal HTTP self-call at
 
 1. **Direct in-process invocation.** Tool calls run your action directly, with no internal HTTP self-call.
 2. **Controllers and minimal APIs.** Both endpoint styles can be exposed with `[McpTool]`.
-3. **AOT-safe, zero reflection.** It is a source generator, so the tool code exists at build time. Nothing is discovered by reflection at runtime.
+3. **AOT-friendly, zero runtime reflection for tool discovery.** It is a source generator, so the tool code exists at build time. The runtime and generated read (GET/HEAD) tools use only reflection-free JSON, and `McpIt` is marked `IsAotCompatible` (the trim and AOT analyzers gate it on every build). Note: tools that take a request body currently serialize it with reflection-based `System.Text.Json`, and the MCP SDK's `WithToolsFromAssembly()` registration is reflection-based, so use explicit `.WithTools<...>()` registration for a fully AOT-published app.
 4. **Polished and tested.** 75 tests cover generation, invocation, output shaping, and the token report.
 
 ---
@@ -157,9 +157,9 @@ Token counts use an offline heuristic tokenizer (estimates, not exact billing): 
 
 ## Compatibility
 
-- **.NET 10.** The library targets `net10.0`.
+- **Targets .NET 8, 9, and 10.** Builds with the .NET 8 SDK and newer (the source generator loads on the .NET 8/9/10 SDK build hosts).
 - **Built on the official MCP SDK.** McpIt layers on `ModelContextProtocol.AspNetCore` 1.4.0. It generates the tool classes; the official SDK serves them over the MCP transport you configure (`AddMcpServer().WithHttpTransport(...)`).
-- **AOT-friendly.** Generation happens at compile time, with no runtime reflection.
+- **AOT-friendly.** Generation happens at compile time. The library is `IsAotCompatible` and the read path is reflection-free; see the note above for the request-body and tool-registration caveats.
 
 ---
 

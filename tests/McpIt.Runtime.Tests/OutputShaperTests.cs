@@ -6,7 +6,7 @@ public class OutputShaperTests
     public void Projects_object_to_selected_fields()
     {
         var json = """{"id":1,"status":"open","secret":"x","note":"y"}""";
-        var shaped = OutputShaper.Shape(json, null, new[] { "id", "status" });
+        var shaped = OutputShaper.Shape(json, null, ["id", "status"]);
 
         Assert.Contains("\"id\":1", shaped);
         Assert.Contains("\"status\":\"open\"", shaped);
@@ -18,7 +18,7 @@ public class OutputShaperTests
     public void Projects_array_elements_to_selected_fields()
     {
         var json = """[{"id":1,"status":"open","x":9},{"id":2,"status":"done","x":8}]""";
-        var shaped = OutputShaper.Shape(json, null, new[] { "id", "status" });
+        var shaped = OutputShaper.Shape(json, null, ["id", "status"]);
 
         Assert.Contains("\"id\":1", shaped);
         Assert.Contains("\"id\":2", shaped);
@@ -38,7 +38,7 @@ public class OutputShaperTests
     public void Projects_then_truncates_in_order()
     {
         var json = """{"id":1,"status":"open","secret":"longvalueignored"}""";
-        var shaped = OutputShaper.Shape(json, 8, new[] { "id" });
+        var shaped = OutputShaper.Shape(json, 8, ["id"]);
         // projection gives {"id":1} then truncate to 8 chars
         Assert.Equal("{\"id\":1}".Substring(0, 8), shaped);
     }
@@ -47,7 +47,7 @@ public class OutputShaperTests
     public void Malformed_json_passes_through_unchanged_when_projecting()
     {
         var json = "not json at all";
-        var shaped = OutputShaper.Shape(json, null, new[] { "id" });
+        var shaped = OutputShaper.Shape(json, null, ["id"]);
         Assert.Equal("not json at all", shaped);
     }
 
@@ -55,7 +55,7 @@ public class OutputShaperTests
     public void Malformed_json_still_truncates()
     {
         var json = "not json at all";
-        var shaped = OutputShaper.Shape(json, 3, new[] { "id" });
+        var shaped = OutputShaper.Shape(json, 3, ["id"]);
         Assert.Equal("not", shaped);
     }
 
@@ -71,7 +71,7 @@ public class OutputShaperTests
     public void Empty_fields_array_does_not_project()
     {
         var json = """{"id":1,"status":"open"}""";
-        var shaped = OutputShaper.Shape(json, null, new string[0]);
+        var shaped = OutputShaper.Shape(json, null, []);
         Assert.Equal(json, shaped);
     }
 }

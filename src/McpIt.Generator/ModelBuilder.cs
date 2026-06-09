@@ -8,13 +8,13 @@ namespace McpIt.Generator;
 public static class ModelBuilder
 {
     private static readonly (string Attr, string Verb)[] VerbAttributes =
-    {
+    [
         ("Microsoft.AspNetCore.Mvc.HttpGetAttribute", "GET"),
         ("Microsoft.AspNetCore.Mvc.HttpPostAttribute", "POST"),
         ("Microsoft.AspNetCore.Mvc.HttpPutAttribute", "PUT"),
         ("Microsoft.AspNetCore.Mvc.HttpDeleteAttribute", "DELETE"),
-        ("Microsoft.AspNetCore.Mvc.HttpPatchAttribute", "PATCH"),
-    };
+        ("Microsoft.AspNetCore.Mvc.HttpPatchAttribute", "PATCH")
+    ];
 
     public static EndpointModel? Build(GeneratorAttributeSyntaxContext ctx)
     {
@@ -92,7 +92,7 @@ public static class ModelBuilder
         var attr = method.GetAttributes().FirstOrDefault(a =>
             a.AttributeClass?.ToDisplayString() == "McpIt.McpToolOutputAttribute");
         if (attr is null)
-            return (null, System.Array.Empty<string>());
+            return (null, []);
 
         int? maxLength = null;
         var maxArg = attr.NamedArguments.FirstOrDefault(kv => kv.Key == "MaxLength");

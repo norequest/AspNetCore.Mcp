@@ -50,11 +50,26 @@ public class OrdersController : ControllerBase
     // underlying REST API (a browser hitting /orders/1/tracking still gets the full object).
     [HttpGet("{id}/tracking")]
     [McpTool(Name = "getOrderTracking")]
-    [McpToolOutput(Fields = new[] { "id", "status", "trackingNumber" }, MaxLength = 400)]
+    [McpToolOutput(Fields = ["id", "status", "trackingNumber"], MaxLength = 400)]
     public ActionResult<Order> GetOrderTracking(int id)
     {
         var order = Orders.FirstOrDefault(o => o.Id == id);
         return order is null ? NotFound() : order;
+    }
+
+    /// <summary>Adds a note to an order and returns the updated order.</summary>
+    // A tool WITH a request body. The [FromBody] parameter is serialized by the generated
+    // tool via System.Text.Json. POST is a destructive verb, so AllowDestructive=true is
+    // required to acknowledge it (otherwise MCPGEN002 fires at build time).
+    [HttpPost("{id}/notes")]
+    [McpTool(Name = "addOrderNote", AllowDestructive = true)]
+    public ActionResult<Order> AddOrderNote(int id, [FromBody] AddNoteRequest request)
+    {
+        var order = Orders.FirstOrDefault(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+        // The demo "database" is read-only; echo the order back with the note appended to the item.
+        return order with { Item = $"{order.Item} (note: {request.Note})" };
     }
 }
 
@@ -67,3 +82,6 @@ public record Order(
     decimal Total,
     string? TrackingNumber,
     string Item);
+
+// The request body for addOrderNote. Its shape becomes the MCP tool's body input.
+public record AddNoteRequest(string Note);

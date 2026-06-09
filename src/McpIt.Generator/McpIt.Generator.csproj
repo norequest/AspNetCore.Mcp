@@ -10,10 +10,13 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Pinned to match the Roslyn version bundled in the .NET 10 SDK (5.0.x).
-         A newer version (e.g. 5.3.0) triggers CS9057 and the generator silently
-         fails to load in real builds. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+    <!-- Analyzers must target the LOWEST Roslyn host they support, not the highest.
+         4.8.0 is the Roslyn bundled in the .NET 8.0.100 SDK; an analyzer built against
+         it loads in the .NET 8, 9, AND 10 SDK compilers. A higher version (e.g. 5.0.0,
+         the .NET 10 SDK's Roslyn) raises CS9057 on the .NET 8 SDK and the generator
+         silently emits zero tools. The generator's APIs (ForAttributeWithMetadataName,
+         4.3.1+, and older) all exist in 4.8.0. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <!-- Analyzer release tracking (resolves RS2008) for MCPGEN0xx diagnostics. -->

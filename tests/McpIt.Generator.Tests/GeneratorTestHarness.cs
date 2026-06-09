@@ -35,16 +35,23 @@ public static class GeneratorTestHarness
             .Distinct()
             .Select(loc => (MetadataReference)MetadataReference.CreateFromFile(loc));
 
-        var references = Net100.References.All.Concat(extraRefs).ToArray();
+#if NET8_0
+        var frameworkRefs = Net80.References.All;
+#elif NET9_0
+        var frameworkRefs = Net90.References.All;
+#else
+        var frameworkRefs = Net100.References.All;
+#endif
+        var references = frameworkRefs.Concat(extraRefs).ToArray();
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests.Generated",
-            syntaxTrees: new[] { syntaxTree },
+            syntaxTrees: [syntaxTree],
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         var driver = CSharpGeneratorDriver.Create(
-            generators: new[] { new McpToolGenerator().AsSourceGenerator() },
+            generators: [new McpToolGenerator().AsSourceGenerator()],
             parseOptions: parseOptions);
 
         var ranDriver = driver.RunGeneratorsAndUpdateCompilation(
