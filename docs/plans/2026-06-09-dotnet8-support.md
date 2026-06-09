@@ -40,12 +40,29 @@ Expected: build succeeds; all tests pass (the baseline is ~75 tests, all green).
 
 ## Task 1: Lower the generator's Roslyn reference to 4.8.0
 
-This is the make-or-break change: it lets the generator load on the .NET 8 SDK (Roslyn 4.8) as well as 9 and 10. The generator only uses `ForAttributeWithMetadataName` (Roslyn 4.3.1+) and older APIs, so 4.8.0 loses nothing.
+This is the make-or-break change: it lets the generator load on the .NET 8 SDK (Roslyn 4.8) as well as 9 and 10. The generator uses `ForAttributeWithMetadataName` (Roslyn 4.3.1+) and older APIs — with ONE exception that must be fixed first: `EquatableArray.cs:14` initializes an `ImmutableArray<T>` with a collection expression (`[..items]`), which Roslyn 4.8.0 cannot lower (CS9210 — `ImmutableArray<T>` collection-expression support needs the `System.Collections.Immutable` that ships with the 4.9.0 package). Downgrading the Roslyn package downgrades `System.Collections.Immutable` with it, so this line must be rewritten to an equivalent that compiles under 4.8.0.
 
 **Files:**
+- Modify: `src/McpIt.Generator/Internal/EquatableArray.cs:14`
 - Modify: `src/McpIt.Generator/McpIt.Generator.csproj:12-16`
 
-- [ ] **Step 1: Replace the Roslyn package reference and its comment**
+- [ ] **Step 1: Rewrite the ImmutableArray collection expression so it compiles under Roslyn 4.8.0**
+
+In `src/McpIt.Generator/Internal/EquatableArray.cs`, replace line 14:
+
+```csharp
+    public EquatableArray(IEnumerable<T> items) => _array = [..items];
+```
+
+with:
+
+```csharp
+    public EquatableArray(IEnumerable<T> items) => _array = items.ToImmutableArray();
+```
+
+(`using System.Collections.Immutable;` and `using System.Linq;` are already present at the top of the file, so `ToImmutableArray()` resolves. This is semantically identical — it builds an `ImmutableArray<T>` from `items` — but uses a factory method that exists in every `System.Collections.Immutable` version rather than the collection-expression lowering that 4.8.0 lacks.)
+
+- [ ] **Step 2: Replace the Roslyn package reference and its comment**
 
 In `src/McpIt.Generator/McpIt.Generator.csproj`, replace lines 12-16:
 
@@ -72,7 +89,7 @@ with:
   </ItemGroup>
 ```
 
-- [ ] **Step 2: Clean-build the generator and confirm it still compiles**
+- [ ] **Step 3: Clean-build the generator and confirm it still compiles under Roslyn 4.8.0**
 
 Run:
 ```bash
@@ -80,9 +97,9 @@ cd /Users/tornikematiashvili/Desktop/McpIt
 find src/McpIt.Generator -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +
 dotnet build src/McpIt.Generator/McpIt.Generator.csproj -c Release
 ```
-Expected: build succeeds with no errors. (Warnings about analyzer-release-tracking should not appear; if any `RS*` analyzer warning surfaces, it is pre-existing and unrelated.)
+Expected: build succeeds with no errors. In particular NO `CS9210` (collection-expression) error from `EquatableArray.cs` — if it appears, Step 1 was not applied. (Warnings about analyzer-release-tracking should not appear; if any `RS*` analyzer warning surfaces, it is pre-existing and unrelated.)
 
-- [ ] **Step 3: Clean-build the whole solution and confirm tools still generate on the .NET 10 host**
+- [ ] **Step 4: Clean-build the whole solution and confirm tools still generate on the .NET 10 host**
 
 Run:
 ```bash
@@ -92,10 +109,10 @@ dotnet build McpIt.slnx -c Release && dotnet test McpIt.slnx -c Release --no-bui
 ```
 Expected: build succeeds; the same test count as the Step 0b baseline passes. In particular `EndToEndToolInvocationTests.Generator_produced_tool_types_in_the_real_build` passes (proves the 4.8.0 generator still emits tools under the .NET 10 SDK).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/McpIt.Generator/McpIt.Generator.csproj
+git add src/McpIt.Generator/Internal/EquatableArray.cs src/McpIt.Generator/McpIt.Generator.csproj
 git commit -m "fix(generator): target Roslyn 4.8.0 so the generator loads on the .NET 8/9 SDK"
 ```
 

@@ -23,10 +23,18 @@ claimed — the same lesson as the previously-unverified minimal-API claim.
    Core, main, and the AspNetCore HTTP transport (`MapMcp`/`WithHttpTransport`).
    No version bump, no API change.
 
-2. **Language/BCL — not a blocker.** Full audit of src/samples/tests found zero
-   C# 13/14 features and zero net9/net10-only BCL APIs. All source compiles
-   unchanged under C# 12 + the net8 BCL. **No conditional compilation needed**;
-   the three TFM builds compile identical source.
+2. **Language/BCL — not a blocker for the runtime; one generator-source fix.**
+   Full audit of src/samples/tests found zero C# 13/14 features and zero
+   net9/net10-only BCL APIs; the runtime/tests/sample compile unchanged under C#
+   12 + the net8 BCL with no conditional compilation. **One exception, discovered
+   during implementation:** `src/McpIt.Generator/Internal/EquatableArray.cs:14`
+   initializes an `ImmutableArray<T>` with a collection expression (`[..items]`).
+   Lowering the generator's Roslyn package to 4.8.0 (finding #3) also lowers
+   `System.Collections.Immutable`, and 4.8.0 cannot lower a collection expression
+   into `ImmutableArray<T>` (CS9210). The line is rewritten to the equivalent
+   `items.ToImmutableArray()`, which compiles on every version. This is a
+   library/compiler-binding constraint of the package downgrade, not a C#
+   language-version issue (hence the language-level audit did not flag it).
 
 3. **Source generator Roslyn pin — the one required fix.** The generator pins
    `Microsoft.CodeAnalysis.CSharp` **5.0.0**, which loads only in a Roslyn ≥5.0
