@@ -115,7 +115,7 @@ The only comparable library, `Api.ToMcp`, performs an internal HTTP self-call at
 
 1. **Direct in-process invocation.** Tool calls run your action directly, with no internal HTTP self-call.
 2. **Controllers and minimal APIs.** Both endpoint styles can be exposed with `[McpTool]`.
-3. **AOT-safe, zero reflection.** It is a source generator, so the tool code exists at build time. Nothing is discovered by reflection at runtime.
+3. **AOT-friendly, zero runtime reflection for tool discovery.** It is a source generator, so the tool code exists at build time. The runtime and generated read (GET/HEAD) tools use only reflection-free JSON, and `McpIt` is marked `IsAotCompatible` (the trim and AOT analyzers gate it on every build). Note: tools that take a request body currently serialize it with reflection-based `System.Text.Json`, and the MCP SDK's `WithToolsFromAssembly()` registration is reflection-based, so use explicit `.WithTools<...>()` registration for a fully AOT-published app.
 4. **Polished and tested.** 75 tests cover generation, invocation, output shaping, and the token report.
 
 ---
@@ -157,9 +157,9 @@ Token counts use an offline heuristic tokenizer (estimates, not exact billing): 
 
 ## Compatibility
 
-- **.NET 10.** The library targets `net10.0`.
+- **Targets .NET 8, 9, and 10.** Builds with the .NET 8 SDK and newer (the source generator loads on the .NET 8/9/10 SDK build hosts).
 - **Built on the official MCP SDK.** McpIt layers on `ModelContextProtocol.AspNetCore` 1.4.0. It generates the tool classes; the official SDK serves them over the MCP transport you configure (`AddMcpServer().WithHttpTransport(...)`).
-- **AOT-friendly.** Generation happens at compile time, with no runtime reflection.
+- **AOT-friendly.** Generation happens at compile time. The library is `IsAotCompatible` and the read path is reflection-free; see the note above for the request-body and tool-registration caveats.
 
 ---
 
