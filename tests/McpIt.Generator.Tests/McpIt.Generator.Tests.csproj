@@ -1,16 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.8" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.8.8" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" Version="1.8.8" Condition="'$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.8" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <!-- Use the same Roslyn version that Basic.Reference.Assemblies 1.8.8 requires
+         (>= 4.11.0) to avoid a binary incompatibility between CSharp 4.8.0 and
+         Common 4.11.0 (TypeLoadException on CommonGetSemanticModel at runtime).
+         The generator DLL itself is still built against Roslyn 4.8.0 (the .NET 8
+         SDK's compiler version); only the test harness needs the higher version. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="ModelContextProtocol" Version="1.4.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -19,7 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\McpIt.Generator\McpIt.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\..\src\McpIt.Generator\McpIt.Generator.csproj" />
+    <ProjectReference Include="..\..\src\McpIt.Generator\McpIt.Generator.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
     <ProjectReference Include="..\..\src\McpIt.Abstractions\McpIt.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\McpIt\McpIt.csproj" />
   </ItemGroup>
