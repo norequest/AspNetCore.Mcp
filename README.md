@@ -4,7 +4,7 @@
 
 # McpIt
 
-**You already have a Web API. Expose it to AI agents as MCP tools at build time: one `[McpTool]` attribute, zero reflection, zero proxy, zero hand-written server.**
+**You already have a Web API. Expose it to AI agents as MCP tools at build time: one `[McpTool]` attribute, reflection-free for read tools, zero proxy, zero hand-written server.**
 
 [![NuGet](https://img.shields.io/nuget/v/McpIt.svg)](https://www.nuget.org/packages/McpIt)
 [![Downloads](https://img.shields.io/nuget/dt/McpIt.svg)](https://www.nuget.org/packages/McpIt)
@@ -15,7 +15,7 @@
 
 ---
 
-McpIt is a build-time Roslyn source generator that turns your existing ASP.NET Core endpoints into [Model Context Protocol](https://modelcontextprotocol.io) tools. The official MCP C# SDK makes you hand-write `[McpServerTool]` classes for every operation you want an agent to use. McpIt generates those tool classes for you from the controller actions and minimal-API endpoints you already have: you mark an action with `[McpTool]`, and at compile time McpIt emits the MCP tool on top of the official [`ModelContextProtocol.AspNetCore`](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore) SDK. No reflection, no internal HTTP self-call, no separate server to write and keep in sync.
+McpIt is a build-time Roslyn source generator that turns your existing ASP.NET Core endpoints into [Model Context Protocol](https://modelcontextprotocol.io) tools. The official MCP C# SDK makes you hand-write `[McpServerTool]` classes for every operation you want an agent to use. McpIt generates those tool classes for you from the controller actions and minimal-API endpoints you already have: you mark an action with `[McpTool]`, and at compile time McpIt emits the MCP tool on top of the official [`ModelContextProtocol.AspNetCore`](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore) SDK. No runtime reflection for tool discovery, no internal HTTP self-call, no separate server to write and keep in sync.
 
 ---
 
