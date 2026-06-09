@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 namespace McpIt.Generator.Tests;
 
 public class ParameterMappingTests
@@ -52,5 +54,47 @@ public class ParameterMappingTests
             """);
         var result = GeneratorTestHarness.Run(src);
         Assert.Contains("param raw -> ParameterSource.Body", result.AllGeneratedSource);
+    }
+
+    [Fact]
+    public void CancellationToken_param_is_not_duplicated_or_serialized()
+    {
+        var src = Wrap("""
+            /// <summary>x</summary>
+            [HttpGet("{id}")]
+            [McpTool]
+            public string Get(int id, System.Threading.CancellationToken cancellationToken) => "ok";
+            """);
+        var result = GeneratorTestHarness.Run(src);
+
+        // The generated wrapper must compile: no CS0100 duplicate-parameter (or any) error.
+        var errors = result.CompilationDiagnostics
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .ToList();
+        Assert.True(errors.Count == 0, "Unexpected generated-code errors: " + string.Join("; ", errors.Select(e => e.Id + " " + e.GetMessage())));
+
+        // The user's CancellationToken must not be treated as a request body.
+        Assert.DoesNotContain("param cancellationToken -> ParameterSource.Body", result.AllGeneratedSource);
+    }
+
+    [Fact]
+    public void CancellationToken_dropped_while_real_body_param_still_serialized()
+    {
+        var src = Wrap("""
+            /// <summary>x</summary>
+            [HttpPost]
+            [McpTool(AllowDestructive = true)]
+            public string Create(CreateOrderRequest request, System.Threading.CancellationToken cancellationToken) => "ok";
+            """);
+        var result = GeneratorTestHarness.Run(src);
+
+        var errors = result.CompilationDiagnostics
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .ToList();
+        Assert.True(errors.Count == 0, "Unexpected generated-code errors: " + string.Join("; ", errors.Select(e => e.Id + " " + e.GetMessage())));
+
+        // The genuine body param is still serialized; the CancellationToken is dropped from the model.
+        Assert.Contains("param request -> ParameterSource.Body", result.AllGeneratedSource);
+        Assert.DoesNotContain("param cancellationToken ->", result.AllGeneratedSource);
     }
 }

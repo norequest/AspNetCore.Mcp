@@ -55,7 +55,11 @@ public static class ModelBuilder
 
         var (outputMaxLength, outputFields) = GetOutputShaping(method);
 
+        var cancellationTokenType = ctx.SemanticModel.Compilation
+            .GetTypeByMetadataName("System.Threading.CancellationToken");
+
         var parameters = method.Parameters
+            .Where(p => !IsCancellationToken(p.Type, cancellationTokenType))
             .Select(p => ParameterClassifier.Classify(p, route))
             .ToArray();
 
@@ -74,6 +78,20 @@ public static class ModelBuilder
             OutputMaxLength: outputMaxLength,
             OutputFields: new EquatableArray<string>(outputFields),
             Location: LocationInfo.From(method.Locations.FirstOrDefault() ?? Location.None));
+    }
+
+    private static bool IsCancellationToken(ITypeSymbol type, INamedTypeSymbol? cancellationTokenType)
+    {
+        // Unwrap Nullable<CancellationToken> so `CancellationToken?` is caught too.
+        if (type is INamedTypeSymbol { IsGenericType: true } nullable &&
+            nullable.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+            type = nullable.TypeArguments[0];
+
+        if (cancellationTokenType is not null)
+            return SymbolEqualityComparer.Default.Equals(type, cancellationTokenType);
+
+        // Fallback if the symbol cannot be resolved from the compilation.
+        return type.ToDisplayString() == "System.Threading.CancellationToken";
     }
 
     private static (bool ReadOnly, bool Destructive, bool Idempotent) DeriveSafety(string verb) => verb switch
