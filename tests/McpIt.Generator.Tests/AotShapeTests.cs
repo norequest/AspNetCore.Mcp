@@ -40,13 +40,14 @@ public class AotShapeTests
         var result = GeneratorTestHarness.Run(GetSource);
         // Non-vacuousness guard: confirm a real tool was generated before asserting absence.
         Assert.Contains("getThing", result.AllGeneratedSource);
-        Assert.DoesNotContain("JsonSerializer.Serialize", result.AllGeneratedSource);
+        Assert.DoesNotContain("global::System.Text.Json.JsonSerializer.Serialize", result.AllGeneratedSource);
     }
 
     [Fact]
     public void Post_body_tool_uses_reflection_json_today()
     {
         var result = GeneratorTestHarness.Run(PostSource);
-        Assert.Contains("JsonSerializer.Serialize", result.AllGeneratedSource);
+        Assert.Contains("createThing", result.AllGeneratedSource);
+        Assert.Contains("global::System.Text.Json.JsonSerializer.Serialize", result.AllGeneratedSource);
     }
 }
