@@ -73,7 +73,7 @@ public class TokenReporterTests
     [Fact]
     public void PercentOfTotal_ReturnsZero_WhenTotalIsZero()
     {
-        var report = TokenReporter.Analyze(Array.Empty<ToolDescriptor>(), Tokenizer);
+        var report = TokenReporter.Analyze([], Tokenizer);
         Assert.Equal(0, report.TotalTokens);
     }
 
@@ -83,14 +83,14 @@ public class TokenReporterTests
     [InlineData(100, 150, false)]
     public void ExceedsBudget_ComparesTotalAgainstBudget(int total, int budget, bool expected)
     {
-        var report = new TokenReport(Array.Empty<ToolTokenCost>(), total);
+        var report = new TokenReport([], total);
         Assert.Equal(expected, TokenReporter.ExceedsBudget(report, budget));
     }
 
     [Fact]
     public void ExceedsBudget_IsFalse_WhenNoBudget()
     {
-        var report = new TokenReport(Array.Empty<ToolTokenCost>(), 1_000_000);
+        var report = new TokenReport([], 1_000_000);
         Assert.False(TokenReporter.ExceedsBudget(report, null));
     }
 }

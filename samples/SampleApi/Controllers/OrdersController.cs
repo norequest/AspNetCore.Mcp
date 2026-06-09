@@ -50,7 +50,7 @@ public class OrdersController : ControllerBase
     // underlying REST API (a browser hitting /orders/1/tracking still gets the full object).
     [HttpGet("{id}/tracking")]
     [McpTool(Name = "getOrderTracking")]
-    [McpToolOutput(Fields = new[] { "id", "status", "trackingNumber" }, MaxLength = 400)]
+    [McpToolOutput(Fields = ["id", "status", "trackingNumber"], MaxLength = 400)]
     public ActionResult<Order> GetOrderTracking(int id)
     {
         var order = Orders.FirstOrDefault(o => o.Id == id);

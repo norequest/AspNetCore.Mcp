@@ -46,12 +46,12 @@ public static class GeneratorTestHarness
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests.Generated",
-            syntaxTrees: new[] { syntaxTree },
+            syntaxTrees: [syntaxTree],
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         var driver = CSharpGeneratorDriver.Create(
-            generators: new[] { new McpToolGenerator().AsSourceGenerator() },
+            generators: [new McpToolGenerator().AsSourceGenerator()],
             parseOptions: parseOptions);
 
         var ranDriver = driver.RunGeneratorsAndUpdateCompilation(

@@ -10,6 +10,7 @@ public static class ServiceCollectionExtensions
     /// own endpoints. By default the base address is detected automatically from each incoming
     /// MCP request, so no configuration is required.
     /// </summary>
+    /// <param name="services"></param>
     /// <param name="configure">
     /// Optional configuration. Set <see cref="McpEndpointsOptions.BaseAddress"/> only to override
     /// auto-detection (e.g. behind a proxy).
