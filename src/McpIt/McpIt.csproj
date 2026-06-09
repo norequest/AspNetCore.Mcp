@@ -3,7 +3,7 @@
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <Description>Turn your ASP.NET Core endpoints into token-efficient Model Context Protocol (MCP) tools at build time. A Roslyn source generator plus runtime built on the official MCP SDK: add this one package and the [McpTool] attributes, the generator, and the MCP server SDK all come with it. Works with minimal APIs and controllers, zero reflection at runtime.</Description>
+    <Description>Turn your ASP.NET Core endpoints into token-efficient Model Context Protocol (MCP) tools at build time. A Roslyn source generator plus runtime built on the official MCP SDK: add this one package and the [McpTool] attributes, the generator, and the MCP server SDK all come with it. Works with minimal APIs and controllers, with zero runtime reflection for tool discovery.</Description>
     <!-- Turn the "AOT-safe" claim into an enforced gate: IsAotCompatible enables the
          trim, AOT, and single-file analyzers (supported net8.0+). The runtime uses only
          the reflection-free JSON DOM/writer, so this is expected to stay clean. Promote

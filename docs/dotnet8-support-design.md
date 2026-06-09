@@ -67,7 +67,7 @@ claimed — the same lesson as the previously-unverified minimal-API claim.
 | `src/McpIt.Abstractions` | None — already `netstandard2.0`; attribute-only, trivially AOT-safe. |
 | `src/McpIt.TokenReport` + `src/McpIt.TokenReport.Tool` | None — stay `net10.0` (CLI keeps single TFM per decision). |
 | `samples/SampleApi` | Multi-target `net8.0;net9.0;net10.0`. Per-TFM `PackageReference` where versions differ (e.g. `Swashbuckle.AspNetCore`). Add at least one **POST endpoint with a body** so the body-serialization path is actually exercised and verifiable. |
-| `tests/McpIt.Generator.Tests`, `tests/McpIt.Runtime.Tests`, `tests/McpIt.IntegrationTests` | Multi-target `net8.0;net9.0;net10.0`. Per-TFM conditional `PackageReference`: `Basic.Reference.Assemblies.Net80/Net90/Net100` (Generator.Tests); `Microsoft.AspNetCore.Mvc.Testing` 8.x/9.x/10.x (IntegrationTests). Pin `McpIt.Generator.Tests`' Roslyn to **4.8.0** to mirror the shipped generator, and select reference assemblies per-TFM in `GeneratorTestHarness.cs` via `#if`. |
+| `tests/McpIt.Generator.Tests`, `tests/McpIt.Runtime.Tests`, `tests/McpIt.IntegrationTests` | Multi-target `net8.0;net9.0;net10.0`. Per-TFM conditional `PackageReference`: `Basic.Reference.Assemblies.Net80/Net90/Net100` (Generator.Tests); `Microsoft.AspNetCore.Mvc.Testing` 8.x/9.x/10.x (IntegrationTests). `McpIt.Generator.Tests` uses `Microsoft.CodeAnalysis.CSharp` **4.11.0** (the floor required by `Basic.Reference.Assemblies` 1.8.8 which transitively requires `Microsoft.CodeAnalysis.Common >= 4.11.0`; combining 4.8.0 with Common 4.11.0 causes a TypeLoadException at test runtime). The shipped generator DLL is still built against 4.8.0. Select reference assemblies per-TFM in `GeneratorTestHarness.cs` via `#if`. |
 | `tests/McpIt.TokenReport.Tests` | None — stays `net10.0` (tests the net10-only `McpIt.TokenReport`). |
 | `.github/workflows/ci.yml` | `actions/setup-dotnet` installs **8.0.x, 9.0.x, 10.0.x**. Build/test runs once; `dotnet test` exercises all TFM legs. Treat trim/AOT analyzer warnings (IL2xxx/IL3xxx) as errors for `src/McpIt`. Publish job unchanged. |
 | `README.md` | Update **only after green**: state net8/9/10 support; make the AOT claim precise (see AOT scope). |
@@ -112,8 +112,7 @@ mechanism the consumer chooses (`WithToolsFromAssembly` reflection vs explicit
    net8 leg and assert the tool types exist + invoke. If the Roslyn pin were
    wrong this drops to zero tools and fails loudly. This is the authoritative
    net8-generation proof.
-2. **Generator.Tests** run against Roslyn 4.8.0 with Net80 reference assemblies on
-   the net8 leg — proves codegen against a net8 compilation.
+2. **Generator.Tests** run with Roslyn 4.11.0 (harness floor set by `Basic.Reference.Assemblies` 1.8.8) and Net80 reference assemblies on the net8 leg — proves codegen against a net8 compilation. Note: the harness Roslyn is 4.11.0, not 4.8.0; the authoritative proof that the 4.8.0 generator DLL works on a real .NET 8 SDK is the IntegrationTests net8 leg.
 3. **Full suite per-TFM** — all test projects run on net8/9/10.
 4. **CI matrix** — all three SDKs installed; analyzer-as-error gates the AOT claim.
 

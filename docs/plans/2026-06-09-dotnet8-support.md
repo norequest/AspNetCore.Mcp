@@ -341,7 +341,7 @@ git commit -m "test(generator): pin AOT read/body codegen distinction"
 - Modify: `tests/McpIt.Generator.Tests/McpIt.Generator.Tests.csproj:4,11,13`
 - Modify: `tests/McpIt.Generator.Tests/GeneratorTestHarness.cs:38`
 
-- [ ] **Step 1: Multi-target the project, make reference assemblies TFM-conditional, and mirror the shipped Roslyn (4.8.0)**
+- [ ] **Step 1: Multi-target the project, make reference assemblies TFM-conditional, and set the test-harness Roslyn to 4.11.0**
 
 In `tests/McpIt.Generator.Tests/McpIt.Generator.Tests.csproj`, replace line 4:
 
@@ -378,9 +378,14 @@ Then replace line 13:
 with:
 
 ```xml
-    <!-- Mirror the version the shipped generator targets so tests run the generator
-         under the same Roslyn the .NET 8 SDK host uses. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <!-- The test harness requires Microsoft.CodeAnalysis.CSharp >= 4.11.0 because
+         Basic.Reference.Assemblies 1.8.8 transitively requires
+         Microsoft.CodeAnalysis.Common >= 4.11.0; combining 4.8.0 with Common 4.11.0
+         throws a TypeLoadException at test runtime. The shipped generator DLL is
+         still built against 4.8.0. The authoritative proof that the 4.8.0 generator
+         emits correct tools under a real .NET 8 SDK comes from the net8 leg of
+         McpIt.IntegrationTests, not from this harness. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
 ```
 
 - [ ] **Step 2: Select the reference-assembly set per TFM in the harness**
@@ -418,7 +423,7 @@ Expected: tests build and pass for net8.0, net9.0, and net10.0 (xUnit runs each 
 
 ```bash
 git add tests/McpIt.Generator.Tests/McpIt.Generator.Tests.csproj tests/McpIt.Generator.Tests/GeneratorTestHarness.cs
-git commit -m "test(generator): multi-target net8/9/10 with per-TFM reference assemblies and Roslyn 4.8.0"
+git commit -m "test(generator): multi-target net8/9/10 with per-TFM reference assemblies and Roslyn 4.11.0 harness"
 ```
 
 ---

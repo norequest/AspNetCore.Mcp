@@ -103,7 +103,7 @@ To an MCP client, a `tools/list` call now returns the tool:
 }
 ```
 
-When the agent calls `getOrder`, McpIt invokes your real `GetOrder` action in-process, so your routing, model binding, validation, and business logic all run exactly as they do for an HTTP caller. There is no second HTTP request and no reflection at runtime.
+When the agent calls `getOrder`, McpIt invokes your real `GetOrder` action in-process, so your routing, model binding, validation, and business logic all run exactly as they do for an HTTP caller. There is no second HTTP request and no reflection at runtime for the call path (see the AOT note for request-body serialization).
 
 ---
 
