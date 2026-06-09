@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -40,9 +41,45 @@ public sealed class HttpClientMcpEndpointInvoker : IMcpEndpointInvoker
         if (jsonBody is not null)
             request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
+        ForwardHeaders(request);
+
         using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
         var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (_options.ThrowOnUnsuccessfulResponse && !response.IsSuccessStatusCode)
+            throw new McpEndpointInvocationException(httpMethod, url, (int)response.StatusCode, content);
+
         return content;
+    }
+
+    /// <summary>
+    /// Copies the configured allowlist of headers (plus <c>Authorization</c> when
+    /// <see cref="McpEndpointsOptions.ForwardAuthorization"/> is set) from the in-flight MCP request
+    /// onto the loopback request, so protected endpoints still authenticate. No-op when there is no
+    /// active HttpContext or nothing is configured to forward.
+    /// </summary>
+    private void ForwardHeaders(HttpRequestMessage request)
+    {
+        if (!_options.ForwardAuthorization && _options.ForwardedHeaders.Count == 0)
+            return;
+
+        var incoming = _httpContextAccessor.HttpContext?.Request.Headers;
+        if (incoming is null)
+            return;
+
+        foreach (var name in _options.ForwardedHeaders)
+            CopyHeader(incoming, request, name);
+
+        // ForwardAuthorization is shorthand for adding "Authorization" to the allowlist; skip it if the
+        // allowlist already covers it (ForwardedHeaders is case-insensitive) so it is not forwarded twice.
+        if (_options.ForwardAuthorization && !_options.ForwardedHeaders.Contains("Authorization"))
+            CopyHeader(incoming, request, "Authorization");
+    }
+
+    private static void CopyHeader(IHeaderDictionary incoming, HttpRequestMessage request, string name)
+    {
+        if (incoming.TryGetValue(name, out var values) && values.Count > 0)
+            request.Headers.TryAddWithoutValidation(name, (IEnumerable<string?>)values);
     }
 
     /// <summary>

@@ -139,6 +139,33 @@ The only comparable library, `Api.ToMcp`, performs an internal HTTP self-call at
 
 ---
 
+## Authentication
+
+The generated tools reach your endpoints through an in-process loopback HTTP call. By default that call carries no headers, so if an endpoint is protected (Basic, Bearer, an API key) the loopback arrives unauthenticated and the endpoint returns 401. Forward the credentials the MCP client already sent:
+
+```csharp
+builder.Services.AddMcpEndpoints(options =>
+{
+    options.BaseAddress = new Uri("https://localhost:5001/");  // required when forwarding (see below)
+    options.ForwardAuthorization = true;        // copy the incoming Authorization header
+    options.ForwardedHeaders.Add("X-Api-Key");  // and any other headers, by name (case-insensitive)
+});
+```
+
+`ForwardAuthorization` copies the incoming request's `Authorization` header onto each loopback call; `ForwardedHeaders` is a general allowlist for anything else (API keys, cookies, tenant headers). Both are off by default, so existing apps are unaffected. Forwarding requires that the MCP client authenticated to reach `/mcp` in the first place (so there is an incoming header to copy); for service-to-service credentials independent of the caller, register a `DelegatingHandler` on the typed `IMcpEndpointInvoker` client instead.
+
+**Forwarding requires an explicit `BaseAddress`.** Without forwarding, McpIt auto-detects the loopback host from the incoming request. That host comes from the client-controlled `Host` header, so forwarding credentials to an auto-detected host could leak them to a spoofed host. To prevent that, enabling `ForwardAuthorization` or `ForwardedHeaders` without setting `BaseAddress` throws at startup. Pin `BaseAddress` to the host you trust.
+
+By default a non-2xx response from your endpoint is returned to the agent as-is, which can surface a 401 page as if it were a successful result. Turn that into a real error:
+
+```csharp
+options.ThrowOnUnsuccessfulResponse = true;   // non-2xx throws McpEndpointInvocationException
+```
+
+`McpEndpointInvocationException` carries the `StatusCode` and `ResponseBody`. This is opt-in to preserve the prior pass-through behavior.
+
+---
+
 ## Token report tool
 
 `mcp-token-report` is an offline analyzer that shows how many tokens your `tools/list` surface spends in the model's context. AI agents load every tool's name, description, and input schema before the user asks anything, so a large tool surface is a real, recurring context cost. The tool reads a running MCP server or a saved `tools/list` JSON file, reports per-tool and total token counts, and can gate a build with `--budget`. It is fully offline and deterministic, so it is safe in CI.
