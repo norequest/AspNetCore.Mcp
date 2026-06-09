@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Required for the generator to read XML <summary> as the MCP tool description
@@ -13,7 +13,9 @@
   <ItemGroup>
     <!-- ModelContextProtocol.AspNetCore is NOT referenced here on purpose: it comes
          transitively from the McpIt package below. -->
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <!-- Swashbuckle 10.x targets net10; 7.x is the line that supports net8/net9. -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" Condition="'$(TargetFramework)' != 'net10.0'" />
     <ProjectReference Include="..\..\src\McpIt\McpIt.csproj" />
     <ProjectReference Include="..\..\src\McpIt.Abstractions\McpIt.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\McpIt.Generator\McpIt.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
