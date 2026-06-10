@@ -116,7 +116,7 @@ The only comparable library, `Api.ToMcp`, performs an internal HTTP self-call at
 1. **Direct in-process invocation.** Tool calls run your action directly, with no internal HTTP self-call.
 2. **Controllers and minimal APIs.** Both endpoint styles can be exposed with `[McpTool]`.
 3. **AOT-friendly, zero runtime reflection for tool discovery.** It is a source generator, so the tool code exists at build time. The runtime and generated read (GET/HEAD) tools use only reflection-free JSON, and `McpIt` is marked `IsAotCompatible` (the trim and AOT analyzers gate it on every build). Note: tools that take a request body currently serialize it with reflection-based `System.Text.Json`, and the MCP SDK's `WithToolsFromAssembly()` registration is reflection-based, so use explicit `.WithTools<...>()` registration for a fully AOT-published app.
-4. **Polished and tested.** 75 tests cover generation, invocation, output shaping, and the token report.
+4. **Polished and tested.** A thorough test suite covers generation, invocation, output shaping, and the token report.
 
 ---
 
@@ -134,7 +134,8 @@ The only comparable library, `Api.ToMcp`, performs an internal HTTP self-call at
   ```
 
 - **Safety hints from HTTP verbs.** MCP tool annotations are derived from the verb: GET and HEAD are read-only and idempotent; POST, PUT, PATCH, and DELETE are flagged destructive (PUT and DELETE also idempotent). Exposing a destructive operation raises a build warning until you acknowledge it with `[McpTool(AllowDestructive = true)]`.
-- **MCPGEN diagnostics.** Build-time warnings keep your tool surface honest: `MCPGEN001` when a tool has no description, `MCPGEN002` when a destructive operation is exposed without acknowledgement.
+- **MCPGEN diagnostics.** Build-time warnings keep your tool surface honest: `MCPGEN001` when a tool has no description, `MCPGEN002` when a destructive operation is exposed without acknowledgement, `MCPGEN003` when a versioned route token is present but no API version can be resolved.
+- **API versioning.** URL-segment versioning (`Asp.Versioning` and the legacy `Microsoft.AspNetCore.Mvc.Versioning`) works out of the box. No changes to your controllers are required; see the [API versioning](#api-versioning) section below.
 - **Token-cost report.** The `mcp-token-report` tool measures what your tool list costs the model and can fail a CI build over a budget (see below).
 
 ---
@@ -163,6 +164,52 @@ options.ThrowOnUnsuccessfulResponse = true;   // non-2xx throws McpEndpointInvoc
 ```
 
 `McpEndpointInvocationException` carries the `StatusCode` and `ResponseBody`. This is opt-in to preserve the prior pass-through behavior.
+
+---
+
+## API versioning
+
+McpIt supports URL-segment API versioning out of the box, for both the modern `Asp.Versioning` package and the legacy `Microsoft.AspNetCore.Mvc.Versioning`. No changes to your controllers are required.
+
+When a route contains a `{version:apiVersion}` token, the generator resolves each endpoint's version from attributes already on your code and bakes a concrete segment into the loopback path it emits. Without this the loopback call would 404 on the literal token.
+
+```csharp
+namespace Api.V1;
+
+[ApiController]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/account")]
+public class AccountController : ControllerBase
+{
+    /// <summary>Returns account info.</summary>
+    [HttpGet("info")]
+    [McpTool]
+    public string Info() => "v1 account info";
+}
+
+namespace Api.V2;
+
+[ApiController]
+[ApiVersion("2.0")]
+[Route("v{version:apiVersion}/account")]
+public class AccountController : ControllerBase
+{
+    /// <summary>Returns account info.</summary>
+    [HttpGet("info")]
+    [McpTool]
+    public string Info() => "v2 account info";
+}
+```
+
+McpIt generates two distinct tools: `info_v1` (loopback path `/v1/account/info`) and `info_v2` (loopback path `/v2/account/info`). The version suffix keeps names unique so both `Info` actions appear in `tools/list` without collision, even though they share a class name and a method name across the two version namespaces. A single controller can also map several versions with `[MapToApiVersion]` on differently named actions; the resolved version is folded into each derived name the same way.
+
+**Version resolution order per action:** `[MapToApiVersion]` on the method, then `[ApiVersion]` on the method, then `[ApiVersion]` on the controller. When several versions apply, the highest wins.
+
+**Segment format:** a minor version of zero is dropped (`[ApiVersion("1.0")]` produces `/v1/`), matching the common convention. A non-zero minor is preserved (`2.1` produces `/v2.1/`).
+
+**Name suffix opt-out:** set an explicit name with `[McpTool(Name = "myTool")]` or a class-level `NamePrefix`, and McpIt uses that name as-is with no auto-suffix.
+
+**Build warning `MCPGEN003`:** if a route contains `{version:apiVersion}` but no `[ApiVersion]` or `[MapToApiVersion]` can be found on the action or its controller, the build warns rather than silently emitting a tool that would 404.
 
 ---
 

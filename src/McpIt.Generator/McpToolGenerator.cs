@@ -31,7 +31,21 @@ public sealed class McpToolGenerator : IIncrementalGenerator
                     Diagnostics.DestructiveOperation, dloc.ToLocation(), model.ToolName));
             }
 
-            spc.AddSource($"{model.GeneratedClassName}.g.cs", Emitter.Emit(model));
+            // A leftover apiVersion token after substitution means no version attribute resolved.
+            if (model.RouteTemplate.IndexOf("apiVersion", System.StringComparison.OrdinalIgnoreCase) >= 0
+                && model.Location is { } vloc)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.UnresolvedApiVersion, vloc.ToLocation(), model.ToolName));
+            }
+
+            // Qualify the hint name with the namespace: the same class+action name can recur in
+            // separate per-version controllers (e.g. V1.AccountController and V2.AccountController),
+            // and AddSource requires a unique hint name per generator.
+            var hint = string.IsNullOrEmpty(model.Namespace)
+                ? $"{model.GeneratedClassName}.g.cs"
+                : $"{model.Namespace}.{model.GeneratedClassName}.g.cs";
+            spc.AddSource(hint, Emitter.Emit(model));
         });
     }
 }

@@ -1,4 +1,7 @@
+using System;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using McpIt.Generator.Internal;
 using Microsoft.CodeAnalysis;
@@ -35,9 +38,17 @@ public static class ModelBuilder
         // action Name fully overrides and is used verbatim with no prefix.
         var namePrefix = classMcpAttr?.NamedArguments
             .FirstOrDefault(kv => kv.Key == "NamePrefix").Value.Value as string;
+        // Resolved here because a derived tool name folds in the API version to keep versioned
+        // variants distinct: the same action in separate per-version controllers would otherwise
+        // derive the same name and collide at the MCP layer.
+        var apiVersion = ResolveApiVersion(method);
         var toolName = string.IsNullOrWhiteSpace(explicitName)
             ? (string.IsNullOrWhiteSpace(namePrefix) ? string.Empty : namePrefix!) + ToCamelCase(method.Name)
             : explicitName!;
+        // Only suffix a fully derived name; an explicit Name or NamePrefix means the author is
+        // taking control of naming (and disambiguation) themselves.
+        if (string.IsNullOrWhiteSpace(explicitName) && string.IsNullOrWhiteSpace(namePrefix) && apiVersion is not null)
+            toolName += "_v" + FormatVersionSegment(apiVersion).Replace('.', '_');
 
         var actionAllowDestructive = mcpAttr?.NamedArguments
             .FirstOrDefault(kv => kv.Key == "AllowDestructive").Value.Value is bool b && b;
@@ -48,6 +59,10 @@ public static class ModelBuilder
         var (httpMethod, methodRoute) = GetVerbAndRoute(method);
         var classRoute = GetClassRoute(method.ContainingType);
         var route = CombineRoutes(classRoute, methodRoute);
+
+        // Resolve URL-segment API versioning so {version:apiVersion} becomes a concrete
+        // segment per endpoint, otherwise the loopback call 404s on the literal token.
+        route = SubstituteApiVersionToken(route, apiVersion);
 
         var description = GetXmlSummary(method) ?? GetDescriptionAttribute(method);
 
@@ -168,6 +183,92 @@ public static class ModelBuilder
         if (prefix.Length == 0) return suffix;
         if (suffix.Length == 0) return prefix;
         return $"{prefix}/{suffix}";
+    }
+
+    // Effective API version for URL-segment versioning, read from attributes already on the code.
+    // Priority: method [MapToApiVersion] > method [ApiVersion] > controller [ApiVersion].
+    // Matched by simple type name so it works for both the modern Asp.Versioning package and the
+    // legacy Microsoft.AspNetCore.Mvc.Versioning one. Returns null when nothing is declared.
+    private static string? ResolveApiVersion(IMethodSymbol method)
+        => HighestVersion(method, "MapToApiVersionAttribute")
+        ?? HighestVersion(method, "ApiVersionAttribute")
+        ?? HighestVersion(method.ContainingType, "ApiVersionAttribute");
+
+    private static string? HighestVersion(ISymbol symbol, string attrSimpleName)
+    {
+        string? best = null;
+        foreach (var attr in symbol.GetAttributes())
+        {
+            if (attr.AttributeClass?.Name != attrSimpleName) continue;
+            var v = ReadVersionFromAttribute(attr);
+            if (v is null) continue;
+            if (best is null || CompareVersions(v, best) > 0) best = v;
+        }
+        return best;
+    }
+
+    // Handles the common ApiVersion constructor shapes: ("1.0"), (1.0), (1, 0[, status]).
+    private static string? ReadVersionFromAttribute(AttributeData attr)
+    {
+        var args = attr.ConstructorArguments;
+        if (args.Length == 0 || args[0].IsNull) return null;
+        switch (args[0].Value)
+        {
+            case string s:
+                return string.IsNullOrWhiteSpace(s) ? null : s;
+            case double d:
+                return d.ToString("0.0###", CultureInfo.InvariantCulture);
+            case int major when args.Length >= 2 && args[1].Value is int minor:
+                return $"{major}.{minor}";
+            case int major:
+                return major.ToString(CultureInfo.InvariantCulture);
+            default:
+                return null;
+        }
+    }
+
+    // Replaces a {version:apiVersion} style token with the resolved version. No-op when there
+    // is no token (non-versioned apps) or nothing was resolved (a warning is raised elsewhere).
+    private static string SubstituteApiVersionToken(string route, string? version)
+    {
+        if (version is null || route.IndexOf("apiVersion", StringComparison.OrdinalIgnoreCase) < 0)
+            return route;
+        return Regex.Replace(route, @"\{[^{}]*:apiVersion[^{}]*\}", FormatVersionSegment(version), RegexOptions.IgnoreCase);
+    }
+
+    // URL-segment convention is major-only when the minor is zero (/v1/ not /v1.0/); the apiVersion
+    // route constraint accepts /v1/ for a "1.0" declaration. A non-zero minor is preserved (/v2.1/).
+    private static string FormatVersionSegment(string version)
+    {
+        var dot = version.IndexOf('.');
+        if (dot < 0) return version;
+        var minorPart = version.Substring(dot + 1);
+        if (double.TryParse(minorPart, NumberStyles.Any, CultureInfo.InvariantCulture, out var minor) && minor == 0)
+            return version.Substring(0, dot);
+        return version;
+    }
+
+    private static int CompareVersions(string a, string b)
+    {
+        var (am, an) = ParseVersion(a);
+        var (bm, bn) = ParseVersion(b);
+        if (am != bm) return am.CompareTo(bm);
+        if (an != bn) return an.CompareTo(bn);
+        return string.CompareOrdinal(a, b);
+    }
+
+    private static (double Major, double Minor) ParseVersion(string v)
+    {
+        var dot = v.IndexOf('.');
+        double major = 0, minor = 0;
+        if (dot < 0)
+            double.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out major);
+        else
+        {
+            double.TryParse(v.Substring(0, dot), NumberStyles.Any, CultureInfo.InvariantCulture, out major);
+            double.TryParse(v.Substring(dot + 1), NumberStyles.Any, CultureInfo.InvariantCulture, out minor);
+        }
+        return (major, minor);
     }
 
     private static string? GetXmlSummary(IMethodSymbol method)
