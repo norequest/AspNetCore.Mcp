@@ -7,3 +7,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 MCPGEN001 | McpIt | Warning | MCP tool has no description; add an XML <summary> or [Description].
 MCPGEN002 | McpIt | Warning | Destructive operation exposed as an MCP tool without [McpTool(AllowDestructive = true)].
+MCPGEN003 | McpIt | Warning | Route contains an unresolved {version:apiVersion} token; add [ApiVersion]/[MapToApiVersion].

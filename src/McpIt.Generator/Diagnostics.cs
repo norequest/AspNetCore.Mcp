@@ -19,4 +19,12 @@ public static class Diagnostics
         category: "McpIt",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnresolvedApiVersion = new(
+        id: "MCPGEN003",
+        title: "Unresolved API version in route",
+        messageFormat: "the route for MCP tool '{0}' contains a {{version:apiVersion}} token but no [ApiVersion]/[MapToApiVersion] was found, so the loopback call will 404; add a version attribute to the action or controller",
+        category: "McpIt",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
 }
